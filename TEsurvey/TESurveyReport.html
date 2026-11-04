@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Service Engine Transferee Survey Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">
+<style>
+/* Layout: the report "dialog" on the left (the ROL Survey selections), the printed report page on the right. Same family as the Workload report. */
+:root {
+  --paper: #ffffff; --desk: #eef1f4; --ink: #1b2430; --muted: #5d6877; --rule: #cfd6de;
+  --accent: #1f5f8b; --band: #dfe5ea; --warn: #9a5b00; --warn-soft: #fbefd9; --bad: #a33a2c; --bad-soft: #f8e4e0;
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #18202a; --desk: #10161d; --ink: #e3e8ee; --muted: #9aa6b4; --rule: #2e3a47;
+    --accent: #7db4dc; --band: #26323f; --warn: #e6b366; --warn-soft: #3a2c14; --bad: #ef9a8c; --bad-soft: #3c1f1a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #18202a; --desk: #10161d; --ink: #e3e8ee; --muted: #9aa6b4; --rule: #2e3a47;
+  --accent: #7db4dc; --band: #26323f; --warn: #e6b366; --warn-soft: #3a2c14; --bad: #ef9a8c; --bad-soft: #3c1f1a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--desk); color: var(--ink); font: 14px/1.45 var(--font-body);
+  padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.app { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; max-width: 1320px; margin: 0 auto; align-items: start; }
+@media (max-width: 860px) { .app { grid-template-columns: minmax(0, 1fr); } }
+
+.panel { background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; display: grid; gap: 14px; }
+.panel h1 { font: 600 17px/1.25 var(--font-display); margin: 0; text-wrap: balance; }
+.panel .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+fieldset { border: 0; border-top: 1px solid var(--rule); margin: 0; padding: 12px 0 0; display: grid; gap: 8px; min-width: 0; }
+legend { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 0; }
+label.field { display: grid; gap: 3px; font-size: 12.5px; }
+select, input[type="date"] {
+  font: inherit; font-size: 13px; color: var(--ink); background: var(--paper);
+  border: 1px solid var(--rule); border-radius: 4px; padding: 5px 7px; width: 100%; min-width: 0;
+}
+.dates { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.choice { display: flex; gap: 7px; align-items: flex-start; font-size: 13px; cursor: pointer; }
+.choice input { margin-top: 3px; accent-color: var(--accent); }
+.choice small, .hint { display: block; color: var(--muted); font-size: 11.5px; }
+.row3 { display: flex; gap: 12px; flex-wrap: wrap; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+button {
+  font: 500 13px var(--font-body); border-radius: 4px; padding: 7px 12px; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--paper);
+}
+button.secondary { background: transparent; color: var(--accent); }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.right { display: grid; gap: 14px; min-width: 0; }
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kpi { background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; }
+.kpi b { display: block; font: 500 20px var(--font-data); font-variant-numeric: tabular-nums; }
+.kpi span { font-size: 11.5px; color: var(--muted); }
+.notice { background: var(--warn-soft); border-left: 3px solid var(--warn); padding: 9px 12px; border-radius: 4px; font-size: 12.5px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.notice span { min-width: 0; flex: 1 1 320px; }
+.notice button { padding: 4px 10px; font-size: 12px; }
+
+.page { background: var(--paper); border: 1px solid var(--rule); border-radius: 2px; padding: 28px 32px 36px; min-width: 0; }
+@media (max-width: 560px) { .page { padding: 18px 14px 24px; } }
+.rhead h2 { font: 700 20px/1.2 var(--font-display); margin: 0 0 2px; }
+.rhead p { margin: 0; font-size: 13px; }
+.rhead .org { font-weight: 600; font-size: 13.5px; }
+.rhead .scope { color: var(--muted); font-size: 12.5px; margin-top: 8px; }
+.tablewrap { overflow-x: auto; margin-top: 16px; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { font-weight: 500; font-size: 12px; color: var(--muted); text-align: left; padding: 5px 8px; border-bottom: 1.5px solid var(--ink); vertical-align: bottom; }
+td { padding: 3px 8px; font-size: 13px; vertical-align: top; }
+th.n, td.n { text-align: center; font-family: var(--font-data); font-size: 12.5px; min-width: 62px; }
+th.n { font-family: var(--font-body); font-size: 11.5px; }
+tr.sec td { font-weight: 600; padding-top: 12px; }
+tr.q td:first-child { padding-left: 24px; }
+tr.grand td { font-weight: 700; border-top: 1.5px solid var(--ink); padding-top: 8px; }
+.rate { margin-top: 12px; font-size: 13px; }
+h3.group { font: 700 15px var(--font-display); margin: 24px 0 0; padding-top: 12px; border-top: 1px dashed var(--rule); }
+.empty { padding: 30px 0; text-align: center; color: var(--muted); }
+.foot { margin-top: 22px; font-size: 11.5px; color: var(--muted); display: grid; gap: 4px; }
+
+/* Detailed Survey Report and comments */
+.survey { padding-block: 16px; border-top: 1.5px solid var(--ink); }
+.survey:first-of-type { margin-top: 16px; }
+.shead { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px 24px; font-size: 13px; }
+@media (max-width: 560px) { .shead { grid-template-columns: minmax(0, 1fr); } }
+.band { background: var(--band); font-weight: 600; font-size: 13px; padding: 3px 8px; margin-top: 12px; }
+.ans { display: grid; grid-template-columns: minmax(0, 1fr) 170px; gap: 12px; padding: 4px 8px; font-size: 13px; }
+@media (max-width: 560px) { .ans { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.ans .who { display: block; color: var(--muted); font-size: 11.5px; }
+.ans.low .val { color: var(--bad); font-weight: 600; }
+.verbatim { padding: 0 8px 6px 24px; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.verbatim.counselor { color: var(--muted); }
+.qbold { font-weight: 600; font-size: 13px; padding: 6px 8px 0; }
+.sfoot { margin-top: 10px; padding: 0 8px; font-size: 12px; color: var(--muted); }
+.pill { display: inline-block; padding: 0 7px; border-radius: 9px; font-size: 11.5px; background: var(--band); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); font-weight: 600; }
+
+@media print {
+  body { background: #fff; color: #000; padding: 0; }
+  .panel, .kpis, .notice { display: none !important; }
+  .app { display: block; max-width: none; }
+  .page { border: 0; padding: 0; background: #fff; color: #000; }
+  .survey { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <form class="panel" id="selections" autocomplete="off">
+    <div>
+      <h1>Transferee Survey Report</h1>
+      <div class="sub">Service Engine · same selections as the ROL Survey dialog</div>
+    </div>
+
+    <fieldset>
+      <legend>Data</legend>
+      <label class="field">Surveys from
+        <select id="f-data">
+          <option value="test">Test surveys (SE_DEV extract)</option>
+          <option value="table">FactTransfereeSurvey (the gold table)</option>
+        </select>
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Report format</legend>
+      <label class="field">Format
+        <select id="f-format">
+          <option value="rollup">Overall Rollup</option>
+          <option value="detail">Detailed Survey Report</option>
+          <option value="comments">TE Detail Comments Report</option>
+          <option value="action">Surveys Requiring Action</option>
+        </select>
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Selections</legend>
+      <label class="field">Corporate client <select id="f-client"></select></label>
+      <label class="choice"><input type="checkbox" id="f-parent"> Parent company rollup</label>
+      <label class="field">Service provider <select id="f-provider"></select></label>
+      <label class="field">Division <select id="f-division"></select></label>
+      <label class="field">Section (service) <select id="f-section"></select></label>
+      <label class="field" id="w-transferee">Transferee <select id="f-transferee"></select></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Date range (survey sent)</legend>
+      <div class="dates">
+        <label class="field">Start date <input type="date" id="f-start"></label>
+        <label class="field">End date <input type="date" id="f-end"></label>
+      </div>
+      <span class="hint">Leave both blank for all surveys. A date range leaves out surveys with no sent date.</span>
+    </fieldset>
+
+    <fieldset>
+      <legend>Move type</legend>
+      <div class="row3">
+        <label class="choice"><input type="radio" name="move" id="m-both" value="both" checked> Both</label>
+        <label class="choice"><input type="radio" name="move" id="m-dom" value="dom"> Domestic</label>
+        <label class="choice"><input type="radio" name="move" id="m-int" value="int"> International</label>
+      </div>
+    </fieldset>
+
+    <fieldset id="w-rollup">
+      <legend>Rollup options</legend>
+      <label class="choice"><input type="checkbox" id="f-gclient"> Group by corp client</label>
+      <label class="choice"><input type="checkbox" id="f-gpolicy"> Group by policy</label>
+      <span class="hint">Show metric box</span>
+      <div class="row3">
+        <label class="choice"><input type="checkbox" id="f-t1" checked> Top Box</label>
+        <label class="choice"><input type="checkbox" id="f-t2" checked> Top 2</label>
+        <label class="choice"><input type="checkbox" id="f-t3" checked> Top 3</label>
+      </div>
+      <label class="field">Sort questions by
+        <select id="f-sort">
+          <option value="survey">Survey order</option>
+          <option value="t1">Top Box</option>
+          <option value="t2">Top 2 Box</option>
+          <option value="t3">Top 3 Box</option>
+        </select>
+      </label>
+    </fieldset>
+
+    <fieldset id="w-comments">
+      <legend>Comments</legend>
+      <label class="choice"><input type="checkbox" id="f-display">
+        <span>Only comments marked Display Response</span></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Transferee permission</legend>
+      <span class="hint">Not available: the Service Engine survey has no Follow Up Permission question.</span>
+    </fieldset>
+
+    <div class="actions">
+      <button type="button" id="b-export">Export to Excel (CSV)</button>
+      <button type="button" class="secondary" id="b-print">Print</button>
+      <button type="button" class="secondary" id="b-reset">Reset</button>
+    </div>
+  </form>
+
+  <main class="right">
+    <div class="notice" id="notice"></div>
+    <div class="kpis" id="kpis"></div>
+    <section class="page" id="page" aria-live="polite"></section>
+  </main>
+</div>
+
+<script>
+const DATA = {"fields":["File #","Name","Client","Client Name","Consultant","Domestic or International","Status","Division","Policy","Move Type","Survey Sent Date","Survey Recipient Email","Survey Section Number","Survey Section Name","Survey Section Question Number","Survey Question","Rating Points","Yes or No Response","Text Response","Rating","Question Contact","Question Contact Role","Service","Total Points Earned","Total Points Possible","Administration Complete Date","Administration Completed By","Counselor Response","Remove From Report","Remove From Calc","Display Response"],"table":[["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic","2026-07-13","kmeisel@nucompass.com",1,"NuCompass Mobility Inc.","S1 Q1","How satisfied were you with the services provided by NuCompass?",0,null,null,null,"Kristen Pifer","File Manager","Career and Family, Home Purchase, Household Goods, Home Sale Assistance, Lease Termination, Mortgage Referral, Property Management, Rental Assistance, Settling In Services, Temp Living, Work Order, Automobiile Shipment, Cross-Cultural Training, Expense Management, Eval Language Training, Survey, Travel Services, CPX, DNU Authorization, CPE, Authorization",0,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic","2026-07-13","kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q1","How likely are you to recommend your NuCompass Consultant to a friend or colleague?",0,null,null,null,"Kristen Pifer","File Manager","Career and Family, Home Purchase, Household Goods, Home Sale Assistance, Lease Termination, Mortgage Referral, Property Management, Rental Assistance, Settling In Services, Temp Living, Work Order, Automobiile Shipment, Cross-Cultural Training, Expense Management, Eval Language Training, Survey, Travel Services, CPX, DNU Authorization, CPE, Authorization",0,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic","2026-07-13","kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q2","How satisfied are you with your Consultant's knowledge of your policy and services provided?",0,null,null,null,"Kristen Pifer","File Manager","Career and Family, Home Purchase, Household Goods, Home Sale Assistance, Lease Termination, Mortgage Referral, Property Management, Rental Assistance, Settling In Services, Temp Living, Work Order, Automobiile Shipment, Cross-Cultural Training, Expense Management, Eval Language Training, Survey, Travel Services, CPX, DNU Authorization, CPE, Authorization",0,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic","2026-07-13","kmeisel@nucompass.com",3,"Expense Management","S3 Q1","How satisfied were you with the overall quality of your automobile How satisfied were you with the way your expenses were processed in accordance with your employer's policy?",0,null,null,null,"Expense Karen","Expense Analyst","Expense Management",0,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic","2026-07-13","kmeisel@nucompass.com",4,"CoPilot","S4 Q1","How satisfied are you with our technology platform for ease of use and as a valuable resource?",0,null,null,null,"Kristen Pifer","File Manager","All Services",0,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic","2026-07-13","kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q1","Please make any comments about your overall experience.",0,null,null,null,"Kristen Pifer","File Manager","All Services",0,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic","2026-07-13","kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q2","Please provide feedback about your employer's policy.",0,null,null,null,"Kristen Pifer","File Manager","All Services",0,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic","2026-07-13","kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q3","Is there someone, or a group of people, that you would like to recognize for their service?",0,null,null,null,"Kristen Pifer","File Manager","All Services",0,25,null,null,null,null,null,null]],"test":[["278-0032","Hamilton, Lewis","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,"kmeisel@nucompass.com",1,"NuCompass Mobility Inc.","S1 Q1","o%09How satisfied were you with the services provided by NuCompass?",1,null,null,"Very Satisfied","Karen Counselor","Relocation Consultant",null,11,25,null,null,null,null,null,null],["278-0032","Hamilton, Lewis","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,"kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q1","How likely are you to recommend your NuCompass Consultant to a friend or colleague?",1,null,null,"Very Satisfied","Karen Counselor","File Manager","All Services",11,25,null,null,null,null,null,null],["278-0032","Hamilton, Lewis","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,"kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q2","How satisfied are you with your Consultant's knowledge of your policy and services provided?",1,null,null,"Very Satisfied","Karen Counselor","File Manager","All Services",11,25,null,null,null,null,null,null],["278-0032","Hamilton, Lewis","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,"kmeisel@nucompass.com",3,"Expense Management","S3 Q1","How satisfied were you with the overall quality of your automobile How satisfied were you with the way your expenses were processed in accordance with your employer's policy?",4,null,null,"Dissatisfied",null,null,"Expense Management",11,25,null,null,null,null,null,null],["278-0032","Hamilton, Lewis","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,"kmeisel@nucompass.com",4,"CoPilot","S4 Q1","How satisfied are you with our technology platform for ease of use and as a valuable resource?",4,null,null,"Dissatisfied","Karen Counselor","File Manager","All Services",11,25,null,null,null,null,null,null],["278-0032","Hamilton, Lewis","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,"kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q1","Please make any comments about your overall experience.",0,null,"Copilot is out of date and not at all intuitive.  Submitting expenses was more painful than it should be.",null,"Karen Counselor","Relocation Consultant",null,11,25,null,null,null,null,null,null],["278-0032","Hamilton, Lewis","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,"kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q2","Is there someone, or a group of people, that you would like to recognize for their service?",0,null,"My consultant and expense provider were top notch.  They were very helpful with all of my CoPilot questions and concerns.",null,"Karen Counselor","Relocation Consultant",null,11,25,null,null,null,null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,"kmeisel@nucompass.com",1,"NuCompass Mobility Inc.","S1 Q1","o%09How satisfied were you with the services provided by NuCompass?",2,null,null,"Satisfied","Karen Counselor","Relocation Consultant",null,10,25,"2026-07-13","Karen Meisel",null,null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,"kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q1","How likely are you to recommend your NuCompass Consultant to a friend or colleague?",2,null,null,"Satisfied","Karen Counselor","File Manager","All Services",10,25,"2026-07-13","Karen Meisel",null,null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,"kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q2","How satisfied are you with your Consultant's knowledge of your policy and services provided?",2,null,null,"Satisfied","Karen Counselor","File Manager","All Services",10,25,"2026-07-13","Karen Meisel",null,null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,"kmeisel@nucompass.com",3,"Expense Management","S3 Q1","How satisfied were you with the overall quality of your automobile How satisfied were you with the way your expenses were processed in accordance with your employer's policy?",2,null,null,"Satisfied",null,null,"Expense Management",10,25,"2026-07-13","Karen Meisel",null,null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,"kmeisel@nucompass.com",4,"CoPilot","S4 Q1","How satisfied are you with our technology platform for ease of use and as a valuable resource?",2,null,null,"Satisfied","Karen Counselor","File Manager","All Services",10,25,"2026-07-13","Karen Meisel",null,null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,"kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q1","Please make any comments about your overall experience.",0,null,"It was satisfactory.",null,"Karen Counselor","Relocation Consultant",null,10,25,"2026-07-13","Karen Meisel",null,null,null,"Y"],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,"kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q2","Is there someone, or a group of people, that you would like to recognize for their service?",0,null,"No.",null,"Karen Counselor","Relocation Consultant",null,10,25,"2026-07-13","Karen Meisel",null,null,null,"Y"],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,"kmeisel@nucompass.com",1,"NuCompass Mobility Inc.","S1 Q1","o%09How satisfied were you with the services provided by NuCompass?",3,null,null,"Somewhat Satisfied","Karen Counselor","Relocation Consultant",null,15,25,"2026-07-13","Karen Meisel",null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,"kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q1","How likely are you to recommend your NuCompass Consultant to a friend or colleague?",3,null,null,"Somewhat Satisfied","Karen Counselor","File Manager","All Services",15,25,"2026-07-13","Karen Meisel",null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,"kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q2","How satisfied are you with your Consultant's knowledge of your policy and services provided?",3,null,null,"Somewhat Satisfied","Karen Counselor","File Manager","All Services",15,25,"2026-07-13","Karen Meisel",null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,"kmeisel@nucompass.com",3,"Expense Management","S3 Q1","How satisfied were you with the overall quality of your automobile How satisfied were you with the way your expenses were processed in accordance with your employer's policy?",3,null,null,"Somewhat Satisfied","Expense Karen","Expense Analyst","Expense Management",15,25,"2026-07-13","Karen Meisel",null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,"kmeisel@nucompass.com",4,"CoPilot","S4 Q1","How satisfied are you with our technology platform for ease of use and as a valuable resource?",3,null,null,"Somewhat Satisfied","Karen Counselor","File Manager","All Services",15,25,"2026-07-13","Karen Meisel",null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,"kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q1","Please make any comments about your overall experience.",0,null,"It was just OK",null,"Karen Counselor","Relocation Consultant",null,15,25,"2026-07-13","Karen Meisel",null,null,null,"Y"],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,"kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q2","Is there someone, or a group of people, that you would like to recognize for their service?",0,null,"No, not really.",null,"Karen Counselor","Relocation Consultant",null,15,25,"2026-07-13","Karen Meisel",null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,"kmeisel@nucompass.com",1,"NuCompass Mobility Inc.","S1 Q1","o%09How satisfied were you with the services provided by NuCompass?",3,null,null,"Somewhat Satisfied","Kristen Pifer","Relocation Consultant",null,11,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,"kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q1","How likely are you to recommend your NuCompass Consultant to a friend or colleague?",1,null,null,"Very Satisfied","Kristen Pifer","File Manager","All Services",11,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,"kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q2","How satisfied are you with your Consultant's knowledge of your policy and services provided?",1,null,null,"Very Satisfied","Kristen Pifer","File Manager","All Services",11,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,"kmeisel@nucompass.com",3,"Expense Management","S3 Q1","How satisfied were you with the overall quality of your automobile How satisfied were you with the way your expenses were processed in accordance with your employer's policy?",2,null,null,"Satisfied","Expense Karen","Expense Analyst","Expense Management",11,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,"kmeisel@nucompass.com",4,"CoPilot","S4 Q1","How satisfied are you with our technology platform for ease of use and as a valuable resource?",4,null,null,"Dissatisfied","Kristen Pifer","File Manager","All Services",11,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,"kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q1","Please make any comments about your overall experience.",0,null,"The support of the consultant very good but the tools were not easy to work with.",null,"Kristen Pifer","Relocation Consultant",null,11,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,"kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q2","Is there someone, or a group of people, that you would like to recognize for their service?",0,null,"I appreciate the time the expense analyst spent with me when I had questions about reimbursements.",null,"Kristen Pifer","Relocation Consultant",null,11,25,null,null,null,null,null,null],["224-0201","Profile III, Karen","NCM NEXZ","NCM NEXZ","Karen Counselor","US Domestic","Active",null,"Leadership Homeowner","US Domestic",null,"kmeisel@NuCompasss.com",1,"NuCompass Mobility Inc.","S1 Q1","o%09How satisfied were you with the services provided by NuCompass?",0,null,null,null,"Karen Counselor","Relocation Consultant",null,0,25,null,null,null,null,null,null],["224-0201","Profile III, Karen","NCM NEXZ","NCM NEXZ","Karen Counselor","US Domestic","Active",null,"Leadership Homeowner","US Domestic",null,"kmeisel@NuCompasss.com",2,"NuCompass Consultant","S2 Q1","How likely are you to recommend your NuCompass Consultant to a friend or colleague?",0,null,null,null,"Karen Counselor","File Manager","All Services",0,25,null,null,null,null,null,null],["224-0201","Profile III, Karen","NCM NEXZ","NCM NEXZ","Karen Counselor","US Domestic","Active",null,"Leadership Homeowner","US Domestic",null,"kmeisel@NuCompasss.com",2,"NuCompass Consultant","S2 Q2","How satisfied are you with your Consultant's knowledge of your policy and services provided?",0,null,null,null,"Karen Counselor","File Manager","All Services",0,25,null,null,null,null,null,null],["224-0201","Profile III, Karen","NCM NEXZ","NCM NEXZ","Karen Counselor","US Domestic","Active",null,"Leadership Homeowner","US Domestic",null,"kmeisel@NuCompasss.com",3,"Expense Management","S3 Q1","How satisfied were you with the overall quality of your automobile How satisfied were you with the way your expenses were processed in accordance with your employer's policy?",0,null,null,null,null,null,"Expense Management",0,25,null,null,null,null,null,null],["224-0201","Profile III, Karen","NCM NEXZ","NCM NEXZ","Karen Counselor","US Domestic","Active",null,"Leadership Homeowner","US Domestic",null,"kmeisel@NuCompasss.com",4,"CoPilot","S4 Q1","How satisfied are you with our technology platform for ease of use and as a valuable resource?",0,null,null,null,"Karen Counselor","File Manager","All Services",0,25,null,null,null,null,null,null],["224-0201","Profile III, Karen","NCM NEXZ","NCM NEXZ","Karen Counselor","US Domestic","Active",null,"Leadership Homeowner","US Domestic",null,"kmeisel@NuCompasss.com",5,"Other Comments or Feed Back","S5 Q1","Please make any comments about your overall experience.",0,null,null,null,"Karen Counselor","File Manager","All Services",0,25,null,null,null,null,null,null],["224-0201","Profile III, Karen","NCM NEXZ","NCM NEXZ","Karen Counselor","US Domestic","Active",null,"Leadership Homeowner","US Domestic",null,"kmeisel@NuCompasss.com",5,"Other Comments or Feed Back","S5 Q2","Is there someone, or a group of people, that you would like to recognize for their service?",0,null,null,null,"Karen Counselor","File Manager","All Services",0,25,null,null,null,null,null,null],["224-0661","Test57, Eric","NCM NEXZ","NCM NEXZ","Karen Counselor","US Domestic","Initiated",null,"Old Capped Move Core Only","US Domestic","2026-08-31","ncmuser.eric+57@gmail.com",1,"NuCompass Mobility Inc.","S1 Q1","o%09How satisfied were you with the services provided by NuCompass?",0,null,null,null,"Karen Counselor","Relocation Consultant",null,0,20,null,null,null,null,null,null],["224-0661","Test57, Eric","NCM NEXZ","NCM NEXZ","Karen Counselor","US Domestic","Initiated",null,"Old Capped Move Core Only","US Domestic","2026-08-31","ncmuser.eric+57@gmail.com",2,"NuCompass Consultant","S2 Q1","How likely are you to recommend your NuCompass Consultant to a friend or colleague?",0,null,null,null,"Karen Counselor","File Manager","All Services",0,20,null,null,null,null,null,null],["224-0661","Test57, Eric","NCM NEXZ","NCM NEXZ","Karen Counselor","US Domestic","Initiated",null,"Old Capped Move Core Only","US Domestic","2026-08-31","ncmuser.eric+57@gmail.com",2,"NuCompass Consultant","S2 Q2","How satisfied are you with your Consultant's knowledge of your policy and services provided?",0,null,null,null,"Karen Counselor","File Manager","All Services",0,20,null,null,null,null,null,null],["224-0661","Test57, Eric","NCM NEXZ","NCM NEXZ","Karen Counselor","US Domestic","Initiated",null,"Old Capped Move Core Only","US Domestic","2026-08-31","ncmuser.eric+57@gmail.com",3,"CoPilot","S3 Q1","How satisfied are you with our technology platform for ease of use and as a valuable resource?",0,null,null,null,"Karen Counselor","File Manager","All Services",0,20,null,null,null,null,null,null],["224-0661","Test57, Eric","NCM NEXZ","NCM NEXZ","Karen Counselor","US Domestic","Initiated",null,"Old Capped Move Core Only","US Domestic","2026-08-31","ncmuser.eric+57@gmail.com",4,"Other Comments or Feed Back","S4 Q1","Please make any comments about your overall experience.",0,null,null,null,"Karen Counselor","File Manager","All Services",0,20,null,null,null,null,null,null],["224-0661","Test57, Eric","NCM NEXZ","NCM NEXZ","Karen Counselor","US Domestic","Initiated",null,"Old Capped Move Core Only","US Domestic","2026-08-31","ncmuser.eric+57@gmail.com",4,"Other Comments or Feed Back","S4 Q2","Is there someone, or a group of people, that you would like to recognize for their service?",0,null,null,null,"Karen Counselor","File Manager","All Services",0,20,null,null,null,null,null,null]],"builtAt":"2026-11-04 16:43"};
+
+// The five SE ratings, low to high, laid out left to right like the Back Office Disagree-to-Agree columns.
+const SCALE = ['Very Dissatisfied', 'Dissatisfied', 'Somewhat Satisfied', 'Satisfied', 'Very Satisfied'];
+const LOW = new Set(['Very Dissatisfied', 'Dissatisfied']);
+const ALL = '__all__';
+
+// Question text is stored URL-encoded; the view decodes only four sequences, and older forms start with "o<tab>".
+function cleanQuestion(q) {
+  if (!q) return '';
+  const s = q.replace(/%u([0-9a-fA-F]{4})/g, (m, h) => String.fromCharCode(parseInt(h, 16)))
+             .replace(/%([0-9a-fA-F]{2})/g, (m, h) => String.fromCharCode(parseInt(h, 16)));
+  return s.replace(/^o\s+/, '').replace(/\s+/g, ' ').trim();
+}
+const cleanSection = s => (s || '(No section)').replace(/Feed Bak$/, 'Feed Back');
+
+function buildSurveys(rows) {
+  const F = Object.fromEntries(DATA.fields.map((f, i) => [f, i]));
+  const map = new Map();
+  for (const r of rows) {
+    const g = f => r[F[f]];
+    // The gold table has no survey ID, so file + sent date identifies a survey.
+    const key = g('File #') + '|' + (g('Survey Sent Date') || '');
+    let s = map.get(key);
+    if (!s) {
+      s = { key, file: g('File #'), name: g('Name'), client: g('Client') || '(No client)', root: g('Client Name') || '(No client)',
+            consultant: g('Consultant') || '(No consultant)', doi: g('Domestic or International') || '', division: g('Division') || '(No division)',
+            policy: g('Policy') || '(No policy)', moveType: g('Move Type') || '', sent: g('Survey Sent Date'), email: g('Survey Recipient Email'),
+            earned: g('Total Points Earned'), possible: g('Total Points Possible'), adminDate: g('Administration Complete Date'),
+            adminBy: g('Administration Completed By'), rows: [] };
+      map.set(key, s);
+    }
+    const qn = /S(\d+) Q(\d+)/.exec(g('Survey Section Question Number') || '') || [0, 0, 0];
+    s.rows.push({ secNo: +qn[1], qNo: +qn[2], section: cleanSection(g('Survey Section Name')), question: cleanQuestion(g('Survey Question')),
+                  rating: g('Rating') || '', yn: g('Yes or No Response') || '', text: g('Text Response') || '', points: g('Rating Points'),
+                  contact: g('Question Contact') || '', role: g('Question Contact Role') || '', service: g('Service') || '',
+                  counselor: g('Counselor Response') || '', removeRpt: g('Remove From Report') === 'Y', removeCalc: g('Remove From Calc') === 'Y',
+                  display: g('Display Response') === 'Y' });
+  }
+  const list = [...map.values()];
+  for (const s of list) {
+    s.rows.sort((a, b) => a.secNo - b.secNo || a.qNo - b.qNo);
+    s.returned = s.rows.some(r => r.rating || r.yn || r.text);
+  }
+  return list.sort((a, b) => a.file.localeCompare(b.file));
+}
+
+const SETS = { test: buildSurveys(DATA.test), table: buildSurveys(DATA.table) };
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+const fmtD = iso => iso ? iso.slice(5, 7) + '/' + iso.slice(8, 10) + '/' + iso.slice(2, 4) : '';
+const uniq = list => [...new Set(list)].sort((a, b) => a.localeCompare(b));
+const pct = (n, d) => d ? Math.round(n / d * 100) + '%' : '-';
+const person = n => (n || '').includes(',') ? n.split(',').slice(1).join(',').trim() + ' ' + n.split(',')[0] : (n || '');
+
+function fillSelect(el, label, values, keep) {
+  const prev = keep ? el.value : ALL;
+  el.innerHTML = `<option value="${ALL}">(All ${label})</option>` + values.map(v => `<option>${esc(v)}</option>`).join('');
+  el.value = values.includes(prev) ? prev : ALL;
+}
+
+function refreshSelects(keep) {
+  const set = SETS[$('f-data').value];
+  const parent = $('f-parent').checked;
+  fillSelect($('f-client'), 'Clients', uniq(set.map(s => parent ? s.root : s.client)), keep);
+  fillSelect($('f-provider'), 'Providers', uniq(set.map(s => s.consultant)), keep);
+  fillSelect($('f-division'), 'Divisions', uniq(set.map(s => s.division)), keep);
+  fillSelect($('f-section'), 'Sections', uniq(set.flatMap(s => s.rows.map(r => r.section))), keep);
+  fillSelect($('f-transferee'), 'Transferees', uniq(set.map(s => s.name)), keep);
+}
+
+function readState() {
+  return {
+    data: $('f-data').value, format: $('f-format').value, client: $('f-client').value, parent: $('f-parent').checked, provider: $('f-provider').value,
+    division: $('f-division').value, section: $('f-section').value, transferee: $('f-transferee').value, start: $('f-start').value, end: $('f-end').value,
+    move: document.querySelector('input[name="move"]:checked').value, gClient: $('f-gclient').checked, gPolicy: $('f-gpolicy').checked,
+    t1: $('f-t1').checked, t2: $('f-t2').checked, t3: $('f-t3').checked, sort: $('f-sort').value, displayOnly: $('f-display').checked,
+  };
+}
+
+function selectSurveys(st) {
+  return SETS[st.data].filter(s => {
+    if (st.client !== ALL && (st.parent ? s.root : s.client) !== st.client) return false;
+    if (st.provider !== ALL && s.consultant !== st.provider) return false;
+    if (st.division !== ALL && s.division !== st.division) return false;
+    if (st.transferee !== ALL && s.name !== st.transferee) return false;
+    if (st.move === 'dom' && !/domestic/i.test(s.doi)) return false;
+    if (st.move === 'int' && !/intern/i.test(s.doi)) return false;
+    if ((st.start || st.end) && !s.sent) return false;
+    if (st.start && s.sent < st.start) return false;
+    if (st.end && s.sent > st.end) return false;
+    return true;
+  });
+}
+
+// Rows that count on a report: Remove From Report never shows; the section filter applies everywhere.
+const visibleRows = (s, st) => s.rows.filter(r => !r.removeRpt && (st.section === ALL || r.section === st.section));
+
+function rollupOf(surveys, st) {
+  const sections = new Map();
+  const total = SCALE.map(() => 0);
+  for (const s of surveys) {
+    if (!s.returned) continue;
+    for (const r of visibleRows(s, st)) {
+      if (!r.rating || r.removeCalc) continue;
+      const i = SCALE.indexOf(r.rating);
+      if (i < 0) continue;
+      let sec = sections.get(r.section);
+      if (!sec) { sec = { name: r.section, order: r.secNo, questions: new Map() }; sections.set(r.section, sec); }
+      sec.order = Math.min(sec.order, r.secNo);
+      let q = sec.questions.get(r.question);
+      if (!q) { q = { text: r.question, order: r.qNo, counts: SCALE.map(() => 0) }; sec.questions.set(r.question, q); }
+      q.counts[i]++; total[i]++;
+    }
+  }
+  return { sections: [...sections.values()].sort((a, b) => a.order - b.order), total };
+}
+
+// Top Box counts the rating labels, not the points: the points scale has run in both directions.
+const boxes = c => {
+  const n = c.reduce((a, b) => a + b, 0);
+  return { n, t1: n ? c[4] / n : 0, t2: n ? (c[4] + c[3]) / n : 0, t3: n ? (c[4] + c[3] + c[2]) / n : 0,
+           p1: pct(c[4], n), p2: pct(c[4] + c[3], n), p3: pct(c[4] + c[3] + c[2], n) };
+};
+
+function metricCols(st) {
+  return [st.t1 && ['Top<br>Box', 'p1', 'Top Box'], st.t2 && ['Top<br>2 Box', 'p2', 'Top 2 Box'], st.t3 && ['Top<br>3 Box', 'p3', 'Top 3 Box']].filter(Boolean);
+}
+
+function renderRollupTable(surveys, st, exportRows, groupName) {
+  const { sections, total } = rollupOf(surveys, st);
+  const returned = surveys.filter(s => s.returned).length;
+  const cols = metricCols(st);
+  const label = SCALE.map(s => s.replace(' ', '<br>'));
+  if (!sections.length) return `<div class="empty">No rated answers for these selections${returned ? '' : ': none of these surveys has been returned'}.</div><p class="rate">Number of Surveys Returned: ${returned} of ${surveys.length} sent.</p>`;
+  let h = `<div class="tablewrap"><table><thead><tr><th></th>${label.map(l => `<th class="n">${l}</th>`).join('')}${cols.map(c => `<th class="n">${c[0]}</th>`).join('')}</tr></thead><tbody>`;
+  for (const sec of sections) {
+    h += `<tr class="sec"><td colspan="${6 + cols.length}">${esc(sec.name)}</td></tr>`;
+    let qs = [...sec.questions.values()];
+    if (st.sort === 'survey') qs.sort((a, b) => a.order - b.order);
+    else qs.sort((a, b) => boxes(b.counts)[st.sort] - boxes(a.counts)[st.sort]);
+    for (const q of qs) {
+      const b = boxes(q.counts);
+      h += `<tr class="q"><td>${esc(q.text)}</td>${q.counts.map(c => `<td class="n">${c}</td>`).join('')}${cols.map(c => `<td class="n">${b[c[1]]}</td>`).join('')}</tr>`;
+      exportRows.push([groupName, sec.name, q.text, ...q.counts, b.p1, b.p2, b.p3]);
+    }
+  }
+  const t = boxes(total);
+  h += `<tr class="grand"><td>Number of Surveys Returned: ${returned} &nbsp;·&nbsp; Total Over all Responses</td>${total.map(c => `<td class="n">${c}</td>`).join('')}${cols.map(c => `<td class="n">${t[c[1]]}</td>`).join('')}</tr></tbody></table></div>`;
+  h += `<p class="rate">*Return Rate: ${pct(returned, surveys.length)} (${returned} of ${surveys.length} surveys sent)</p>`;
+  exportRows.push([groupName, 'Total Over all Responses', '', ...total, t.p1, t.p2, t.p3]);
+  exportRows.push([groupName, 'Number of Surveys Returned', returned, 'Surveys Sent', surveys.length, 'Return Rate', pct(returned, surveys.length)]);
+  return h;
+}
+
+function surveyHeader(s) {
+  return `<div class="shead"><div>File: <b>${esc(s.file)}</b></div><div>Sent On: ${s.sent ? fmtD(s.sent) : 'Not recorded'}</div>
+    <div>Company: ${esc(s.client)}</div><div>Primary Contact: ${esc(s.consultant)}</div>
+    <div>Transferee: ${esc(person(s.name))}</div><div>Division: ${esc(s.division)}</div></div>`;
+}
+
+function renderDetail(surveys, st, exportRows) {
+  let h = '', shown = 0;
+  for (const s of surveys.filter(x => x.returned)) {
+    const rows = visibleRows(s, st).filter(r => r.rating || r.yn || r.text);
+    if (!rows.length) continue;
+    shown++;
+    h += `<article class="survey">${surveyHeader(s)}`;
+    let sec = null;
+    for (const r of rows) {
+      if (r.section !== sec) { sec = r.section; h += `<div class="band">${esc(sec)}</div>`; }
+      const ans = r.rating || r.yn;
+      const who = [r.contact, r.role].filter(Boolean).join(' · ');
+      h += `<div class="ans${LOW.has(r.rating) ? ' low' : ''}"><div>${esc(r.question)}${who ? `<span class="who">${esc(who)}</span>` : ''}</div><div class="val">${esc(ans)}${r.removeCalc ? ' <span class="pill">Not in calc</span>' : ''}</div></div>`;
+      if (r.text) h += `<div class="verbatim">${esc(r.text)}</div>`;
+      if (r.counselor) h += `<div class="verbatim counselor">Counselor: ${esc(r.counselor)}</div>`;
+      exportRows.push([s.file, s.name, s.client, s.consultant, s.sent || '', r.section, r.question, ans, r.text, r.contact, r.role, r.counselor]);
+    }
+    h += `<div class="sfoot">Total points ${s.earned ?? 0} of ${s.possible ?? 0} · ${s.adminDate ? `Administration completed ${fmtD(s.adminDate)} by ${esc(s.adminBy || 'unknown')}` : 'Administration not completed'}</div></article>`;
+  }
+  return shown ? h + `<p class="rate">NOTE: Report only includes questions TE responded to.</p>` : `<div class="empty">No returned surveys for these selections.</div>`;
+}
+
+function renderComments(surveys, st, exportRows) {
+  let h = '', shown = 0;
+  for (const s of surveys) {
+    const rows = visibleRows(s, st).filter(r => r.text && (!st.displayOnly || r.display));
+    if (!rows.length) continue;
+    shown++;
+    h += `<article class="survey">${surveyHeader(s)}`;
+    let sec = null;
+    for (const r of rows) {
+      if (r.section !== sec) { sec = r.section; h += `<div class="band">${esc(sec)}</div>`; }
+      h += `<div class="qbold">${esc(r.question)}${r.display ? ' <span class="pill">Display Response</span>' : ''}</div><div class="verbatim">${esc(r.text)}</div>`;
+      exportRows.push([s.file, s.name, s.client, s.consultant, s.sent || '', r.section, r.question, r.text, r.display ? 'Y' : '']);
+    }
+    h += `</article>`;
+  }
+  return shown ? h : `<div class="empty">No comments for these selections.</div>`;
+}
+
+function renderAction(surveys, st, exportRows) {
+  const list = surveys.filter(s => s.returned && !s.adminDate).map(s => {
+    const rows = visibleRows(s, st);
+    const low = rows.filter(r => LOW.has(r.rating));
+    const worst = SCALE.find(l => rows.some(r => r.rating === l)) || '';
+    return { s, low: low.length, worst, comments: rows.filter(r => r.text).length, rated: rows.filter(r => r.rating).length };
+  }).sort((a, b) => b.low - a.low || a.s.file.localeCompare(b.s.file));
+  if (!list.length) return `<div class="empty">No returned surveys are waiting for administration.</div>`;
+  let h = `<div class="tablewrap"><table><thead><tr><th>File</th><th>Transferee</th><th>Client</th><th>Consultant</th><th>Lowest rating</th><th class="n">Dissatisfied answers</th><th class="n">Comments</th><th class="n">Points</th></tr></thead><tbody>`;
+  for (const x of list) {
+    h += `<tr><td>${esc(x.s.file)}</td><td>${esc(x.s.name)}</td><td>${esc(x.s.client)}</td><td>${esc(x.s.consultant)}</td><td><span class="pill${LOW.has(x.worst) ? ' bad' : ''}">${esc(x.worst || 'Comments only')}</span></td><td class="n">${x.low} of ${x.rated}</td><td class="n">${x.comments}</td><td class="n">${x.s.earned ?? 0} / ${x.s.possible ?? 0}</td></tr>`;
+    exportRows.push([x.s.file, x.s.name, x.s.client, x.s.consultant, x.worst, x.low, x.rated, x.comments, x.s.earned, x.s.possible]);
+  }
+  return h + `</tbody></table></div><p class="rate">Proposed rule, to confirm with Ops: returned surveys with no Administration Complete Date, those with Dissatisfied answers first.</p>`;
+}
+
+const FORMATS = {
+  rollup: ['Survey Overall Rollup', ['Group', 'Section', 'Question', ...SCALE, 'Top Box', 'Top 2 Box', 'Top 3 Box']],
+  detail: ['Detailed Survey Report', ['File', 'Name', 'Client', 'Consultant', 'Sent', 'Section', 'Question', 'Answer', 'Comment', 'Question Contact', 'Role', 'Counselor Response']],
+  comments: ['TE Detail Comments Report', ['File', 'Name', 'Client', 'Consultant', 'Sent', 'Section', 'Question', 'Comment', 'Display Response']],
+  action: ['Surveys Requiring Action', ['File', 'Name', 'Client', 'Consultant', 'Lowest Rating', 'Dissatisfied Answers', 'Rated Answers', 'Comments', 'Points Earned', 'Points Possible']],
+};
+
+let lastExport = { name: '', header: [], rows: [] };
+
+function render() {
+  const st = readState();
+  const surveys = selectSurveys(st);
+  $('w-rollup').hidden = st.format !== 'rollup';
+  $('w-comments').hidden = st.format !== 'comments';
+  $('w-transferee').hidden = st.format === 'rollup';
+
+  const returned = surveys.filter(s => s.returned).length;
+  const { total } = rollupOf(surveys, st);
+  const b = boxes(total);
+  $('kpis').innerHTML = [[surveys.length, 'Surveys sent'], [returned, 'Surveys returned'], [pct(returned, surveys.length), 'Return rate'],
+    [b.n, 'Rated responses'], [b.p2, 'Top 2 Box']].map(([v, l]) => `<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('');
+
+  const answered = SETS.table.filter(s => s.returned).length;
+  $('notice').innerHTML = st.data === 'test'
+    ? `<span><b>Test data.</b> These are the test files from the SE_DEV extract, shown in the table's format so the report can be seen with answered surveys. They are not in FactTransfereeSurvey.</span><button type="button" class="secondary" id="b-swap">Show the gold table</button>`
+    : `<span><b>FactTransfereeSurvey holds ${SETS.table.length} survey${SETS.table.length === 1 ? '' : 's'}, ${answered} answered</b>, built ${esc(DATA.builtAt)}. The report fills in once answered surveys are loaded.</span><button type="button" class="secondary" id="b-swap">Show test surveys</button>`;
+  $('b-swap').addEventListener('click', () => { $('f-data').value = st.data === 'test' ? 'table' : 'test'; refreshSelects(false); render(); });
+
+  const [title, header] = FORMATS[st.format];
+  const dateLine = st.start || st.end ? `Surveys Sent between ${st.start ? fmtD(st.start) : 'the first survey'} and ${st.end ? fmtD(st.end) : 'today'}` : 'All Survey Dates';
+  const scope = [st.division === ALL ? '(All Divisions)' : esc(st.division), st.provider === ALL ? 'All Service Providers' : esc(st.provider),
+                 st.section === ALL ? 'All Sections' : esc(st.section), { both: 'All Move Types', dom: 'Domestic', int: 'International' }[st.move]].join(' · ');
+  const head = `<div class="rhead"><p class="org">NuCompass Mobility Services Inc.</p><h2>${title}</h2>
+    <p>${st.client === ALL ? 'All Clients' : esc(st.client)}</p><p class="scope">${dateLine}<br>${scope}</p></div>`;
+
+  const exportRows = [];
+  let body = '';
+  if (!surveys.length) body = `<div class="empty">No surveys match these selections. Widen the date range or set a filter back to All.</div>`;
+  else if (st.format === 'rollup') {
+    if (st.gClient || st.gPolicy) {
+      const keyOf = s => [st.gClient ? (st.parent ? s.root : s.client) : null, st.gPolicy ? s.policy : null].filter(Boolean).join(' · ');
+      for (const k of uniq(surveys.map(keyOf))) {
+        body += `<h3 class="group">${esc(k)}</h3>` + renderRollupTable(surveys.filter(s => keyOf(s) === k), st, exportRows, k);
+      }
+    } else body = renderRollupTable(surveys, st, exportRows, 'All');
+  } else if (st.format === 'detail') body = renderDetail(surveys, st, exportRows);
+  else if (st.format === 'comments') body = renderComments(surveys, st, exportRows);
+  else body = renderAction(surveys, st, exportRows);
+
+  body += `<div class="foot"><span>Source: ${st.data === 'test' ? 'Test/SE_DEV(main) survey extract, in the shape of FactTransfereeSurvey' : `WarehouseDB.dbo.FactTransfereeSurvey (built ${esc(DATA.builtAt)})`}. Top Box, Top 2 Box and Top 3 Box count rating labels; points are not used.</span>
+    <span>Answers marked Remove From Report never appear, and answers marked Remove From Calc are left out of the counts. A survey counts as returned when it has at least one answer.</span></div>`;
+
+  $('page').innerHTML = head + body;
+  lastExport = { name: title.replace(/ /g, '_'), header, rows: exportRows };
+}
+
+function exportCsv() {
+  const q = v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const csv = '﻿' + [lastExport.header, ...lastExport.rows].map(r => r.map(q).join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = lastExport.name + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+refreshSelects(false);
+$('selections').addEventListener('change', e => {
+  if (e.target.id === 'f-data' || e.target.id === 'f-parent') refreshSelects(false);
+  render();
+});
+$('selections').addEventListener('submit', e => e.preventDefault());
+$('b-export').addEventListener('click', exportCsv);
+$('b-print').addEventListener('click', () => window.print());
+$('b-reset').addEventListener('click', () => { $('selections').reset(); refreshSelects(false); render(); });
+render();
+</script>
+</body>
+</html>
