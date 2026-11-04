@@ -1,4 +1,4 @@
-# WorkloadReportSample
+# ReportSample
 
-This is a sample of workload report made using the FactWorkload table in WarehouseDB which has on the SE source data.
+This is a sample of reports made using the table in WarehouseDB which has data from the SE source.
 
