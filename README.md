@@ -5,20 +5,21 @@ A collection of sample reports developed using data from `WarehouseDB`, which co
 ## Available Reports
 
 ### 1. Workload Reports
-    
-    Report Source : WarehouseDB.dbo.FactWorkload
+     Report Source : WarehouseDB.dbo.FactWorkload
 
 - **[View Workload Report](Workload/WorkloadReport.html)**
 - [View Workload Report Documentation](Workload/docs/Workload_Report_All_Points.md)
 
 ### 2. Transferee Survey Reports
-
-    Report Source : WarehouseDB.dbo.FactTransfereeSurvey
+     Report Source : WarehouseDB.dbo.FactTransfereeSurvey
 
 - **[View Transferee Survey Report](TEsurvey/TESurveyReport.html)**
 - [View Transferee Survey Documentation](TEsurvey/docs/Transferee_Survey_Report_All_Points.md)
 
 ---
+### 3. Open Points
+- [View Report Summary](Workload/docs/SE_Reports_Summary.md)
+
 
 **Data Source:** WarehouseDB  
 **Source System:** Service Engine (SE)
