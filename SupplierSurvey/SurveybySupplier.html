@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Service Engine Survey by Supplier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,500;8..60,700&display=swap">
+<style>
+/* Layout: the report "dialog" on the left (the ROL Survey selections), the printed report page on the right. Same family as the Workload report. */
+:root {
+  --paper: #ffffff; --desk: #eef1f4; --ink: #1b2430; --muted: #5d6877; --rule: #cfd6de;
+  --accent: #1f5f8b; --band: #dfe5ea; --warn: #9a5b00; --warn-soft: #fbefd9; --bad: #a33a2c; --bad-soft: #f8e4e0;
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #18202a; --desk: #10161d; --ink: #e3e8ee; --muted: #9aa6b4; --rule: #2e3a47;
+    --accent: #7db4dc; --band: #26323f; --warn: #e6b366; --warn-soft: #3a2c14; --bad: #ef9a8c; --bad-soft: #3c1f1a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #18202a; --desk: #10161d; --ink: #e3e8ee; --muted: #9aa6b4; --rule: #2e3a47;
+  --accent: #7db4dc; --band: #26323f; --warn: #e6b366; --warn-soft: #3a2c14; --bad: #ef9a8c; --bad-soft: #3c1f1a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--desk); color: var(--ink); font: 14px/1.45 var(--font-body);
+  padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.app { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; max-width: 1320px; margin: 0 auto; align-items: start; }
+@media (max-width: 860px) { .app { grid-template-columns: minmax(0, 1fr); } }
+
+.panel { background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; display: grid; gap: 14px; }
+.panel h1 { font: 600 17px/1.25 var(--font-display); margin: 0; text-wrap: balance; }
+.panel .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+fieldset { border: 0; border-top: 1px solid var(--rule); margin: 0; padding: 12px 0 0; display: grid; gap: 8px; min-width: 0; }
+legend { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 0; }
+label.field { display: grid; gap: 3px; font-size: 12.5px; }
+select, input[type="date"] {
+  font: inherit; font-size: 13px; color: var(--ink); background: var(--paper);
+  border: 1px solid var(--rule); border-radius: 4px; padding: 5px 7px; width: 100%; min-width: 0;
+}
+.dates { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.choice { display: flex; gap: 7px; align-items: flex-start; font-size: 13px; cursor: pointer; }
+.choice input { margin-top: 3px; accent-color: var(--accent); }
+.choice small, .hint { display: block; color: var(--muted); font-size: 11.5px; }
+.row3 { display: flex; gap: 12px; flex-wrap: wrap; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+button {
+  font: 500 13px var(--font-body); border-radius: 4px; padding: 7px 12px; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--paper);
+}
+button.secondary { background: transparent; color: var(--accent); }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.right { display: grid; gap: 14px; min-width: 0; }
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kpi { background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; }
+.kpi b { display: block; font: 500 20px var(--font-data); font-variant-numeric: tabular-nums; }
+.kpi span { font-size: 11.5px; color: var(--muted); }
+.notice { background: var(--warn-soft); border-left: 3px solid var(--warn); padding: 9px 12px; border-radius: 4px; font-size: 12.5px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.notice span { min-width: 0; flex: 1 1 320px; }
+.notice button { padding: 4px 10px; font-size: 12px; }
+
+.page { background: var(--paper); border: 1px solid var(--rule); border-radius: 2px; padding: 28px 32px 36px; min-width: 0; }
+@media (max-width: 560px) { .page { padding: 18px 14px 24px; } }
+.rhead h2 { font: 700 20px/1.2 var(--font-display); margin: 0 0 2px; }
+.rhead p { margin: 0; font-size: 13px; }
+.rhead .org { font-weight: 600; font-size: 13.5px; }
+.rhead .scope { color: var(--muted); font-size: 12.5px; margin-top: 8px; }
+.tablewrap { overflow-x: auto; margin-top: 16px; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { font-weight: 500; font-size: 12px; color: var(--muted); text-align: left; padding: 5px 8px; border-bottom: 1.5px solid var(--ink); vertical-align: bottom; }
+td { padding: 3px 8px; font-size: 13px; vertical-align: top; }
+th.n, td.n { text-align: center; font-family: var(--font-data); font-size: 12.5px; min-width: 62px; }
+th.n { font-family: var(--font-body); font-size: 11.5px; }
+tr.sec td { font-weight: 600; padding-top: 12px; }
+tr.q td:first-child { padding-left: 24px; }
+tr.grand td { font-weight: 700; border-top: 1.5px solid var(--ink); padding-top: 8px; }
+.rate { margin-top: 12px; font-size: 13px; }
+h3.group { font: 700 15px var(--font-display); margin: 24px 0 0; padding-top: 12px; border-top: 1px dashed var(--rule); }
+.empty { padding: 30px 0; text-align: center; color: var(--muted); }
+.foot { margin-top: 22px; font-size: 11.5px; color: var(--muted); display: grid; gap: 4px; }
+
+/* Detailed Survey Report and comments */
+.survey { padding-block: 16px; border-top: 1.5px solid var(--ink); }
+.survey:first-of-type { margin-top: 16px; }
+.shead { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px 24px; font-size: 13px; }
+@media (max-width: 560px) { .shead { grid-template-columns: minmax(0, 1fr); } }
+.band { background: var(--band); font-weight: 600; font-size: 13px; padding: 3px 8px; margin-top: 12px; }
+.ans { display: grid; grid-template-columns: minmax(0, 1fr) 170px; gap: 12px; padding: 4px 8px; font-size: 13px; }
+@media (max-width: 560px) { .ans { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.ans .who { display: block; color: var(--muted); font-size: 11.5px; }
+.ans.low .val { color: var(--bad); font-weight: 600; }
+.verbatim { padding: 0 8px 6px 24px; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.verbatim.counselor { color: var(--muted); }
+.qbold { font-weight: 600; font-size: 13px; padding: 6px 8px 0; }
+.sfoot { margin-top: 10px; padding: 0 8px; font-size: 12px; color: var(--muted); }
+.pill { display: inline-block; padding: 0 7px; border-radius: 9px; font-size: 11.5px; background: var(--band); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); font-weight: 600; }
+
+@media print {
+  body { background: #fff; color: #000; padding: 0; }
+  .panel, .kpis, .notice { display: none !important; }
+  .app { display: block; max-width: none; }
+  .page { border: 0; padding: 0; background: #fff; color: #000; }
+  .survey { break-inside: avoid; }
+}
+/* Survey by Supplier additions */
+.rhead { text-align: center; }
+.rtop { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: baseline; font-size: 12.5px; }
+.rtop span:first-child { text-align: left; }
+tr.grp td { font: 700 16px var(--font-display); padding-top: 20px; border-bottom: 1px solid var(--ink); }
+tr.sup td { font: 700 15px var(--font-display); padding-top: 18px; }
+.supmeta { font: 400 12px var(--font-body); color: var(--muted); margin-left: 8px; }
+tr.qtext td { font-style: italic; padding-top: 10px; padding-left: 24px; }
+.te { display: grid; grid-template-columns: 44px 110px minmax(130px, 200px) 150px minmax(0, 1fr); gap: 8px; align-items: baseline; }
+.vip { font-size: 12px; }
+.ansval { color: var(--muted); }
+tr.det.low .ansval { color: var(--bad); font-weight: 600; }
+tr.cmt td { padding-left: 170px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 560px) { .te { grid-template-columns: 36px minmax(0, 1fr); } .te > span:nth-child(n+3) { grid-column: 2; } tr.cmt td { padding-left: 52px; } }
+tr.tot td:first-child, tr.qlabel td:first-child { padding-left: 24px; }
+tr.qlabel td:first-child { font-style: italic; }
+tr.tot td, tr.qlabel td { padding-bottom: 8px; }
+tr.sectot td { font-weight: 600; border-top: 1px solid var(--rule); padding-top: 6px; }
+tr.suptot td { font-weight: 700; border-top: 1px solid var(--ink); padding-top: 6px; }
+tr.grand td:first-child { text-align: right; }
+h3.outer { font: 700 17px var(--font-display); margin: 24px 0 0; }
+@media print { .tablewrap { overflow: visible; } thead { display: table-header-group; } tr { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <form class="panel" id="selections" autocomplete="off">
+    <div>
+      <h1>Survey by Supplier</h1>
+      <p class="sub">Service Engine data, from FactSupplierSurvey</p>
+    </div>
+
+    <fieldset>
+      <legend>Selections</legend>
+      <label class="field">Corporate Client <select id="f-client"></select></label>
+      <label class="field">Service Provider <select id="f-provider"></select></label>
+      <label class="field">Supplier Type <select id="f-type"></select></label>
+      <label class="field">Supplier <select id="f-supplier"></select></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Report Format</legend>
+      <label class="field">Format
+        <select id="f-format">
+          <option value="detail">Summary by Supplier with Detail</option>
+          <option value="summary">Summary by Supplier</option>
+          <option value="section">Summary by Section</option>
+          <option value="scorecard">Supplier Scorecard</option>
+          <option value="comments">Supplier Comments</option>
+        </select>
+      </label>
+      <label class="field">Group By
+        <select id="f-group">
+          <option value="supplier">Supplier</option>
+          <option value="provider">Service Provider</option>
+          <option value="client">Client</option>
+          <option value="type">Supplier Type</option>
+        </select>
+      </label>
+      <label class="choice" id="w-comments"><input type="checkbox" id="f-comments" checked> Show Comments</label>
+      <div class="row3" id="w-metrics">
+        <label class="choice"><input type="checkbox" id="f-t1" checked> Top Box</label>
+        <label class="choice"><input type="checkbox" id="f-t2" checked> Top 2 Box</label>
+        <label class="choice"><input type="checkbox" id="f-t3" checked> Top 3 Box</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Survey Sent Date</legend>
+      <div class="dates">
+        <label class="field">Start <input type="date" id="f-start"></label>
+        <label class="field">End <input type="date" id="f-end"></label>
+      </div>
+    </fieldset>
+
+    <div class="actions">
+      <button type="button" id="b-export">Excel (CSV)</button>
+      <button type="button" class="secondary" id="b-print">Print</button>
+      <button type="button" class="secondary" id="b-reset">Reset</button>
+    </div>
+  </form>
+
+  <main class="right">
+    <div class="kpis" id="kpis"></div>
+    <div class="notice" id="notice" hidden></div>
+    <section class="page" id="page" aria-live="polite"></section>
+  </main>
+</div>
+
+<script>
+const DATA = {"fields":["File #","Name","Client","Consultant","Survey ID","Survey Sent Date","Survey Section Name","Survey Section Question Number","Survey Question","Yes or No Response","Text Response","Rating","Remove From Report","Remove From Calc","Supplier ID","Supplier","Supplier Type","Supplier Role","Supplier Match","Suppliers On Question"],"rows":[["SAMPLE-001","Sample, Transferee 1","SAMPLE DATA","Sample Consultant",-1,"2026-08-03","Household Goods","S3 Q1","How satisfied were you with the overall quality of the moving services provided?","","Sample comment: the crew was careful.","Very Satisfied"," "," ",-1,"SAMPLE Van Line","Van Line","Household Goods Provider","Question contact",1],["SAMPLE-001","Sample, Transferee 1","SAMPLE DATA","Sample Consultant",-1,"2026-08-03","Auto Shipment","S4 Q1","How satisfied were you with the overall quality of your automobile transportation?","","","Satisfied"," "," ",-2,"SAMPLE Auto Shipper A","Auto Shipment","Auto Shipper","Service role",1],["SAMPLE-002","Sample, Transferee 2","SAMPLE DATA","Sample Consultant",-2,"2026-08-10","Household Goods","S3 Q1","How satisfied were you with the overall quality of the moving services provided?","","Sample comment: delivery was late.","Dissatisfied"," "," ",-1,"SAMPLE Van Line","Van Line","Household Goods Provider","Service role",1],["SAMPLE-002","Sample, Transferee 2","SAMPLE DATA","Sample Consultant",-2,"2026-08-10","Temporary Living","S5 Q1","How satisfied were you with your corporate housing experience?","","","Somewhat Satisfied"," "," ",-4,"SAMPLE Corporate Housing","Temporary Accommodations","Temp Living Provider","Service role",1],["SAMPLE-003","Sample, Transferee 3","SAMPLE DATA","Sample Consultant",-3,"2026-08-12","Auto Shipment","S4 Q1","How satisfied were you with the overall quality of your automobile transportation?","","","Very Satisfied"," "," ",-2,"SAMPLE Auto Shipper A","Auto Shipment","Auto Shipper","Service role",2],["SAMPLE-003","Sample, Transferee 3","SAMPLE DATA","Sample Consultant",-3,"2026-08-12","Auto Shipment","S4 Q1","How satisfied were you with the overall quality of your automobile transportation?","","","Very Satisfied"," "," ",-3,"SAMPLE Auto Shipper B","Auto Shipment","Auto Shipper","Service role",2],["SAMPLE-004","Sample, Transferee 4","SAMPLE DATA","Sample Consultant",-4,"2026-09-01","Household Goods","S3 Q1","How satisfied were you with the overall quality of the moving services provided?","","","Satisfied"," "," ",-1,"SAMPLE Van Line","Van Line","Household Goods Provider","Question contact",1],["SAMPLE-004","Sample, Transferee 4","SAMPLE DATA","Sample Consultant",-4,"2026-09-01","Temporary Living","S5 Q1","How satisfied were you with your corporate housing experience?","","Sample comment: the apartment was not ready.","Very Dissatisfied"," "," ",-4,"SAMPLE Corporate Housing","Temporary Accommodations","Temp Living Provider","Service role",1],["SAMPLE-005","Sample, Transferee 5","SAMPLE DATA","Sample Consultant",-5,"2026-09-15","Auto Shipment","S4 Q1","How satisfied were you with the overall quality of your automobile transportation?","","","Satisfied"," ","Y",-3,"SAMPLE Auto Shipper B","Auto Shipment","Auto Shipper","Service role",1]],"builtAt":"2026-11-05 11:09"};
+
+// The five SE ratings, low to high, laid out left to right like the Back Office Disagree-to-Agree columns.
+const SCALE = ['Very Dissatisfied', 'Dissatisfied', 'Somewhat Satisfied', 'Satisfied', 'Very Satisfied'];
+const LOW = new Set(['Very Dissatisfied', 'Dissatisfied']);
+const ALL = '__all__';
+const NO_TYPE = '(No type)';
+
+// Supplier Type comes from the survey section, in Back Office terms: the fact's own Supplier Type column holds
+// ORGTYP descriptions such as Van Line, sometimes several per supplier, which can't match values like HHG.
+const SERVICE_LINE = {
+  'Household Goods': 'HHG', 'Auto Shipment': 'Auto', 'Temporary Living': 'Temp Housing',
+  'Cross-Cultural Training': 'Cross-Cultural Training', 'Language Training': 'Language Training', 'Destination Services': 'Destination Services',
+};
+// Back Office Supplier Types with no question on the SE survey: listed so the gap is visible, but they can't be picked.
+const NO_SE_QUESTION = ['HFP Agent', 'Home Sale Agent', 'Mortgage', 'Property Management', 'Rental Assistance'];
+
+// Question text is stored URL-encoded; the view decodes only four sequences, and older forms start with "o<tab>".
+function cleanQuestion(q) {
+  if (!q) return '';
+  const s = q.replace(/%u([0-9a-fA-F]{4})/g, (m, h) => String.fromCharCode(parseInt(h, 16)))
+             .replace(/%([0-9a-fA-F]{2})/g, (m, h) => String.fromCharCode(parseInt(h, 16)));
+  return s.replace(/^o\s+/, '').replace(/\s+/g, ' ').trim();
+}
+
+const isYes = v => /^y/i.test(String(v ?? '').trim());
+const F = Object.fromEntries(DATA.fields.map((f, i) => [f, i]));
+const answers = DATA.rows.map(r => {
+  const g = f => r[F[f]];
+  const qn = /S(\d+) Q(\d+)/.exec(g('Survey Section Question Number') || '') || [0, 0, 0];
+  const section = g('Survey Section Name') || '(No section)';
+  return {
+    file: g('File #'), name: g('Name'), client: g('Client') || '(No client)', consultant: g('Consultant') || '(No consultant)',
+    survey: g('Survey ID'), sent: g('Survey Sent Date'), secNo: +qn[1], qNo: +qn[2], qKey: g('Survey Section Question Number'),
+    section, stype: SERVICE_LINE[section] || section, question: cleanQuestion(g('Survey Question')),
+    rating: g('Rating') || '', yn: g('Yes or No Response') || '', text: g('Text Response') || '',
+    removeRpt: g('Remove From Report') === 'Y', removeCalc: g('Remove From Calc') === 'Y',
+    // Not in FactSupplierSurvey yet: shows as soon as the snapshot carries Client VIP / NCM VIP.
+    vip: isYes(g('Client VIP')) || isYes(g('NCM VIP')),
+    supplierId: g('Supplier ID'), supplier: g('Supplier'), types: (g('Supplier Type') || NO_TYPE).split(', '),
+    role: g('Supplier Role') || '', match: g('Supplier Match') || '', shared: +g('Suppliers On Question') || 1,
+  };
+}).filter(a => !a.removeRpt);
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+const fmtD = iso => iso ? iso.slice(5, 7) + '/' + iso.slice(8, 10) + '/' + iso.slice(2, 4) : '';
+const uniq = list => [...new Set(list)].sort((a, b) => a.localeCompare(b));
+const pct = (n, d) => d ? Math.round(n / d * 100) + '%' : '-';
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+function fillSelect(el, label, values) {
+  el.innerHTML = `<option value="${ALL}">(All ${label})</option>` + values.map(v => `<option>${esc(v)}</option>`).join('');
+  el.value = ALL;
+}
+
+function initSelects() {
+  fillSelect($('f-client'), 'Clients', uniq(answers.map(a => a.client)));
+  fillSelect($('f-provider'), 'Providers', uniq(answers.map(a => a.consultant)));
+  fillSelect($('f-type'), 'Supplier Types', uniq(answers.map(a => a.stype)));
+  $('f-type').insertAdjacentHTML('beforeend', NO_SE_QUESTION.map(t => `<option disabled>${esc(t)} (no SE question)</option>`).join(''));
+  refreshSuppliers();
+}
+
+function refreshSuppliers() {
+  const type = $('f-type').value;
+  fillSelect($('f-supplier'), 'Suppliers', uniq(answers.filter(a => type === ALL || a.stype === type).map(a => a.supplier)));
+}
+
+function readState() {
+  return {
+    client: $('f-client').value, provider: $('f-provider').value, type: $('f-type').value, supplier: $('f-supplier').value,
+    format: $('f-format').value, group: $('f-group').value, comments: $('f-comments').checked, start: $('f-start').value, end: $('f-end').value,
+    t1: $('f-t1').checked, t2: $('f-t2').checked, t3: $('f-t3').checked,
+  };
+}
+
+function selectAnswers(st) {
+  return answers.filter(a => {
+    if (st.client !== ALL && a.client !== st.client) return false;
+    if (st.provider !== ALL && a.consultant !== st.provider) return false;
+    if (st.type !== ALL && a.stype !== st.type) return false;
+    if (st.supplier !== ALL && a.supplier !== st.supplier) return false;
+    if ((st.start || st.end) && !a.sent) return false;
+    if (st.start && a.sent < st.start) return false;
+    if (st.end && a.sent > st.end) return false;
+    return true;
+  });
+}
+
+const emptyTally = () => ({ counts: SCALE.map(() => 0), yes: 0, no: 0 });
+function tally(t, a) {
+  if (a.removeCalc) return;
+  const i = SCALE.indexOf(a.rating);
+  if (i >= 0) t.counts[i]++;
+  if (a.yn === 'Yes') t.yes++;
+  if (a.yn === 'No') t.no++;
+}
+
+// A shared answer sits on each of its suppliers. It counts for each supplier's own score, but only once in any total across suppliers.
+function tallyOnce(list) {
+  const seen = new Set(), t = emptyTally();
+  for (const a of list) {
+    const k = a.survey + '|' + a.qKey;
+    if (!seen.has(k)) { seen.add(k); tally(t, a); }
+  }
+  return t;
+}
+
+// Top Box counts the rating labels, not the points: the points scale has run in both directions.
+const boxes = c => {
+  const n = c.reduce((a, b) => a + b, 0);
+  return { n, p1: pct(c[4], n), p2: pct(c[4] + c[3], n), p3: pct(c[4] + c[3] + c[2], n) };
+};
+
+const byOrder = (a, b) => a.order - b.order;
+const isYesNo = Q => Q.answers.some(a => a.yn && !a.rating);
+const qLabel = Q => (isYesNo(Q) ? '** ' : '') + Q.text;
+
+// supplier -> section -> question, each with its own tally.
+function rollupBySupplier(list) {
+  const suppliers = new Map();
+  for (const a of list) {
+    let S = suppliers.get(a.supplierId);
+    if (!S) { S = { name: a.supplier, types: a.types, sections: new Map(), tally: emptyTally(), surveys: new Set() }; suppliers.set(a.supplierId, S); }
+    let C = S.sections.get(a.section);
+    if (!C) { C = { name: a.section, stype: a.stype, order: a.secNo, questions: new Map(), tally: emptyTally() }; S.sections.set(a.section, C); }
+    let Q = C.questions.get(a.question);
+    if (!Q) { Q = { text: a.question, order: a.qNo, answers: [], tally: emptyTally() }; C.questions.set(a.question, Q); }
+    Q.answers.push(a); S.surveys.add(a.survey);
+    tally(Q.tally, a); tally(C.tally, a); tally(S.tally, a);
+  }
+  return [...suppliers.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+// section -> question -> supplier: the Back Office Summary by Section order.
+function rollupBySection(list) {
+  const sections = new Map();
+  for (const a of list) {
+    let C = sections.get(a.section);
+    if (!C) { C = { name: a.section, stype: a.stype, order: a.secNo, questions: new Map(), answers: [] }; sections.set(a.section, C); }
+    let Q = C.questions.get(a.question);
+    if (!Q) { Q = { text: a.question, order: a.qNo, suppliers: new Map(), answers: [] }; C.questions.set(a.question, Q); }
+    let S = Q.suppliers.get(a.supplierId);
+    if (!S) { S = { name: a.supplier, types: a.types, answers: [], tally: emptyTally() }; Q.suppliers.set(a.supplierId, S); }
+    S.answers.push(a); Q.answers.push(a); C.answers.push(a); tally(S.tally, a);
+  }
+  return [...sections.values()].sort(byOrder);
+}
+
+const metricCols = st => [st.t1 && ['Top<br>Box', 'p1'], st.t2 && ['Top<br>2 Box', 'p2'], st.t3 && ['Top<br>3 Box', 'p3']].filter(Boolean);
+const spanOf = st => 8 + metricCols(st).length;
+const tallyCells = (t, st) => {
+  const b = boxes(t.counts);
+  return [...t.counts, t.yes, t.no, ...metricCols(st).map(c => b[c[1]])].map(v => `<td class="n">${v}</td>`).join('');
+};
+const tallyValues = t => { const b = boxes(t.counts); return [...t.counts, t.yes, t.no, b.p1, b.p2, b.p3]; };
+const totalRow = (cls, label, t, st) => `<tr class="${cls}"><td>${esc(label)}</td>${tallyCells(t, st)}</tr>`;
+
+const CSV_TEXT = ['Level', 'Group', 'Supplier', 'Supplier Type', 'Service Type', 'Question', 'File', 'Name', 'VIP', 'Answer', 'Comment', 'Credited By', 'Suppliers On Question'];
+const CSV_COUNTS = [...SCALE, 'Yes', 'No', 'Top Box', 'Top 2 Box', 'Top 3 Box'];
+const csvRow = (o, t) => [...CSV_TEXT.map(c => o[c] ?? ''), ...(t ? tallyValues(t) : CSV_COUNTS.map(() => ''))];
+
+// One transferee line: VIP marker, file, name, answer. Blank answers are left out and never counted.
+function teRows(Q, st, ctx, out) {
+  let h = '';
+  for (const a of Q.answers) {
+    const ans = a.rating || a.yn;
+    if (!ans && !(st.comments && a.text)) continue;
+    const pills = (a.match === 'Service role' ? ' <span class="pill" title="The question names no supplier, so this supplier was found from its role on the file">Credited by role</span>' : '')
+      + (a.shared > 1 ? ` <span class="pill">Shared by ${a.shared} suppliers</span>` : '')
+      + (a.removeCalc ? ' <span class="pill">Not in calc</span>' : '');
+    h += `<tr class="det${LOW.has(a.rating) ? ' low' : ''}"><td colspan="${spanOf(st)}"><div class="te"><span class="vip">${a.vip ? '(VIP)' : ''}</span><span>${esc(a.file)}</span><span>${esc(a.name)}</span><span class="ansval">${esc(ans)}</span><span>${pills}</span></div></td></tr>`;
+    if (st.comments && a.text) h += `<tr class="cmt"><td colspan="${spanOf(st)}">${esc(a.text)}</td></tr>`;
+    out.push(csvRow({ ...ctx, Level: 'Answer', File: a.file, Name: a.name, VIP: a.vip ? 'VIP' : '', Answer: ans, Comment: st.comments ? a.text : '', 'Credited By': a.match, 'Suppliers On Question': a.shared }));
+  }
+  return h;
+}
+
+// Summary by Supplier with Detail: question label above its transferees, then a "Totals For" row.
+// Summary by Supplier: the same transferees, with the question label under them carrying the counts.
+function renderBySupplier(list, st, group, out) {
+  let h = '';
+  for (const S of rollupBySupplier(list)) {
+    const types = S.types.join(', ');
+    h += `<tr class="sup"><td colspan="${spanOf(st)}">${esc(S.name)} <span class="supmeta">${esc(types)} · ${plural(S.surveys.size, 'survey')}</span></td></tr>`;
+    for (const C of [...S.sections.values()].sort(byOrder)) {
+      const ctx = { Group: group, Supplier: S.name, 'Supplier Type': C.stype, 'Service Type': C.name };
+      h += `<tr class="sec"><td colspan="${spanOf(st)}">${esc(C.name)}</td></tr>`;
+      for (const Q of [...C.questions.values()].sort(byOrder)) {
+        const qctx = { ...ctx, Question: Q.text };
+        if (st.format === 'detail') {
+          h += `<tr class="qtext"><td colspan="${spanOf(st)}">${esc(qLabel(Q))}</td></tr>` + teRows(Q, st, qctx, out);
+          h += totalRow('tot', `Totals For ${Q.text}`, Q.tally, st);
+        } else {
+          h += teRows(Q, st, qctx, out) + totalRow('qlabel', qLabel(Q), Q.tally, st);
+        }
+        out.push(csvRow({ ...qctx, Level: 'Question total' }, Q.tally));
+      }
+      h += totalRow('sectot', `Totals for ${C.name}`, C.tally, st);
+      out.push(csvRow({ ...ctx, Level: 'Section total' }, C.tally));
+    }
+    h += totalRow('suptot', `Totals for ${S.name}`, S.tally, st);
+    out.push(csvRow({ Level: 'Supplier total', Group: group, Supplier: S.name }, S.tally));
+  }
+  return h;
+}
+
+// Summary by Section: one count row per supplier under each question.
+function renderBySection(list, st, group, out) {
+  let h = '';
+  for (const C of rollupBySection(list)) {
+    const ctx = { Group: group, 'Supplier Type': C.stype, 'Service Type': C.name };
+    h += `<tr class="sec"><td colspan="${spanOf(st)}">${esc(C.name)}</td></tr>`;
+    for (const Q of [...C.questions.values()].sort(byOrder)) {
+      h += `<tr class="qtext"><td colspan="${spanOf(st)}">${esc(qLabel(Q))}</td></tr>`;
+      for (const S of [...Q.suppliers.values()].sort((a, b) => a.name.localeCompare(b.name))) {
+        h += totalRow('q', S.name, S.tally, st);
+        out.push(csvRow({ ...ctx, Level: 'Supplier on question', Supplier: S.name, Question: Q.text }, S.tally));
+        if (st.comments) for (const a of S.answers) if (a.text) h += `<tr class="cmt"><td colspan="${spanOf(st)}">${esc(a.file)}: ${esc(a.text)}</td></tr>`;
+      }
+    }
+    const t = tallyOnce(C.answers);
+    h += totalRow('sectot', `Totals for ${C.name}`, t, st);
+    out.push(csvRow({ ...ctx, Level: 'Section total' }, t));
+  }
+  return h;
+}
+
+// One line per supplier, like the Client Summary on the Workload report.
+function renderScorecard(list, st, group, out) {
+  let h = '';
+  for (const S of rollupBySupplier(list)) {
+    const b = boxes(S.tally.counts);
+    h += `<tr><td>${esc(S.name)}</td><td>${esc(S.types.join(', '))}</td><td class="n">${S.surveys.size}</td><td class="n">${b.n}</td><td class="n">${S.tally.yes}</td><td class="n">${S.tally.no}</td>${metricCols(st).map(c => `<td class="n">${b[c[1]]}</td>`).join('')}</tr>`;
+    out.push([group, S.name, S.types.join(', '), S.surveys.size, b.n, S.tally.yes, S.tally.no, b.p1, b.p2, b.p3]);
+  }
+  return h;
+}
+
+function scorecardTotal(list, st, label, cls, group, out) {
+  const t = tallyOnce(list), b = boxes(t.counts), surveys = new Set(list.map(a => a.survey)).size;
+  out.push([group, label, '', surveys, b.n, t.yes, t.no, b.p1, b.p2, b.p3]);
+  return `<tr class="${cls}"><td colspan="2">${esc(label)}</td><td class="n">${surveys}</td><td class="n">${b.n}</td><td class="n">${t.yes}</td><td class="n">${t.no}</td>${metricCols(st).map(c => `<td class="n">${b[c[1]]}</td>`).join('')}</tr>`;
+}
+
+function renderComments(list, group, out) {
+  let h = '';
+  for (const S of rollupBySupplier(list)) {
+    const sections = [...S.sections.values()].sort(byOrder).filter(C => [...C.questions.values()].some(Q => Q.answers.some(a => a.text)));
+    if (!sections.length) continue;
+    h += `<h3 class="group">${esc(S.name)}</h3>`;
+    for (const C of sections) {
+      h += `<div class="band">${esc(C.name)}</div>`;
+      for (const Q of [...C.questions.values()].filter(Q => Q.answers.some(a => a.text)).sort(byOrder)) {
+        h += `<div class="qbold">${esc(Q.text)}</div>`;
+        for (const a of Q.answers.filter(x => x.text)) {
+          h += `<div class="verbatim">${a.vip ? '(VIP) ' : ''}<b>${esc(a.file)}</b> ${esc(a.name)}: ${esc(a.text)}</div>`;
+          out.push([group, S.name, C.stype, C.name, Q.text, a.file, a.name, a.vip ? 'VIP' : '', a.rating || a.yn, a.text]);
+        }
+      }
+    }
+  }
+  return h;
+}
+
+const GROUPS = {
+  supplier: null,
+  provider: ['Service Provider', a => a.consultant],
+  client: ['Client', a => a.client],
+  type: ['Supplier Type', a => a.stype],
+};
+
+// The optional outer grouping. Grouped by Supplier is the plain report: one block, no outer heading.
+function groupsOf(list, st) {
+  const g = GROUPS[st.group];
+  if (!g) return [{ name: '', list }];
+  return uniq(list.map(g[1])).map(name => ({ name, list: list.filter(a => g[1](a) === name) }));
+}
+
+const FORMATS = {
+  detail: ['Supplier Survey Detail Results', 'Detail'],
+  summary: ['Supplier Survey Detail Results', 'Summary_by_Supplier'],
+  section: ['Supplier Survey Results', 'Summary_by_Section'],
+  scorecard: ['Supplier Scorecard', 'Scorecard'],
+  comments: ['Supplier Survey Comments', 'Comments'],
+};
+const COUNT_HEADER = [...CSV_TEXT, ...CSV_COUNTS];
+const HEADERS = {
+  detail: COUNT_HEADER, summary: COUNT_HEADER, section: COUNT_HEADER,
+  scorecard: ['Group', 'Supplier', 'Supplier Type', '# Surveys', 'Rated Responses', 'Yes', 'No', 'Top Box', 'Top 2 Box', 'Top 3 Box'],
+  comments: ['Group', 'Supplier', 'Supplier Type', 'Service Type', 'Question', 'File', 'Name', 'VIP', 'Answer', 'Comment'],
+};
+
+function reportBody(list, st, out) {
+  const groups = groupsOf(list, st);
+  const groupLabel = GROUPS[st.group] ? GROUPS[st.group][0] : '';
+  const cols = metricCols(st);
+
+  if (st.format === 'comments') {
+    let h = '';
+    for (const G of groups) {
+      const part = renderComments(G.list, G.name, out);
+      if (part) h += (G.name ? `<h3 class="outer">${esc(groupLabel)}: ${esc(G.name)}</h3>` : '') + part;
+    }
+    return h || `<div class="empty">No comments for these selections.</div>`;
+  }
+
+  if (st.format === 'scorecard') {
+    let h = `<div class="tablewrap"><table><thead><tr><th>Supplier</th><th>Supplier Type</th><th class="n"># Surveys</th><th class="n">Rated Responses</th><th class="n">Yes</th><th class="n">No</th>${cols.map(c => `<th class="n">${c[0]}</th>`).join('')}</tr></thead><tbody>`;
+    for (const G of groups) {
+      if (G.name) h += `<tr class="grp"><td colspan="${6 + cols.length}">${esc(groupLabel)}: ${esc(G.name)}</td></tr>`;
+      h += renderScorecard(G.list, st, G.name, out);
+      if (G.name) h += scorecardTotal(G.list, st, `Totals for ${G.name}`, 'suptot', G.name, out);
+    }
+    return h + scorecardTotal(list, st, 'Total Over all Response', 'grand', '', out) + '</tbody></table></div>';
+  }
+
+  const label = SCALE.map(s => s.replace(' ', '<br>'));
+  let h = `<div class="tablewrap"><table><thead><tr><th></th>${label.map(l => `<th class="n">${l}</th>`).join('')}<th class="n">Yes</th><th class="n">No</th>${cols.map(c => `<th class="n">${c[0]}</th>`).join('')}</tr></thead><tbody>`;
+  for (const G of groups) {
+    if (G.name) h += `<tr class="grp"><td colspan="${spanOf(st)}">${esc(groupLabel)}: ${esc(G.name)}</td></tr>`;
+    h += st.format === 'section' ? renderBySection(G.list, st, G.name, out) : renderBySupplier(G.list, st, G.name, out);
+    if (G.name) {
+      const t = tallyOnce(G.list);
+      h += totalRow('suptot', `Totals for ${G.name}`, t, st);
+      out.push(csvRow({ Level: 'Group total', Group: G.name }, t));
+    }
+  }
+  const overall = tallyOnce(list);
+  h += totalRow('grand', 'Total Over all Response', overall, st) + '</tbody></table></div>';
+  out.push(csvRow({ Level: 'Total Over all Response' }, overall));
+  return h;
+}
+
+let lastExport = { format: 'detail', rows: [] };
+
+function render() {
+  const st = readState();
+  const list = selectAnswers(st);
+  const suppliers = new Set(list.map(a => a.supplierId)).size;
+
+  const b = boxes(tallyOnce(list).counts);
+  $('kpis').innerHTML = [[suppliers, 'Suppliers'], [new Set(list.map(a => a.survey)).size, 'Surveys'], [b.n, 'Rated responses'], [b.p1, 'Top Box'], [b.p2, 'Top 2 Box']]
+    .map(([v, l]) => `<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('');
+
+  $('w-comments').hidden = st.format === 'scorecard' || st.format === 'comments';
+  $('w-metrics').hidden = st.format === 'comments';
+
+  const notice = $('notice');
+  const samples = answers.filter(a => /^SAMPLE-/.test(a.file)).length;
+  notice.hidden = !!answers.length && !samples;
+  if (samples) notice.innerHTML = `<span><b>Sample data.</b> ${samples === answers.length ? 'All' : samples} rows in this report are made up to show the layout. They are not real survey answers, and the suppliers are not real. FactSupplierSurvey holds the same sample rows and no real ones, because Service Engine has no surveys with supplier questions yet.</span>`;
+  else if (!answers.length) notice.innerHTML = `<span><b>FactSupplierSurvey has no rows yet</b>${DATA.builtAt ? `, built ${esc(DATA.builtAt)}` : ''}. Service Engine has no surveys with supplier questions, so there is nothing to report. The report fills in once they are loaded.</span>`;
+
+  const dateLine = st.start || st.end ? `Surveys Sent between ${st.start ? fmtD(st.start) : 'the first survey'} and ${st.end ? fmtD(st.end) : 'today'}` : 'All Survey Dates';
+  const now = new Date();
+  const printed = `${now.getMonth() + 1}/${now.getDate()}/${String(now.getFullYear()).slice(2)} ${now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+  const typeLine = st.type === ALL ? '' : `Supplier Type: ${esc(st.type)}<br>`;
+  const byLine = GROUPS[st.group] ? `Grouped by ${GROUPS[st.group][0]}<br>` : '';
+  let body = `<div class="rhead"><div class="rtop"><span>${printed}</span><h2>${FORMATS[st.format][0]}</h2><span></span></div>
+    <p class="org">NuCompass Mobility Services Inc.</p>
+    <p class="scope">${dateLine}<br>${st.client === ALL ? 'All Clients' : 'For: Company ' + esc(st.client)}<br>${st.provider === ALL ? 'All Service Providers' : esc(st.provider)}<br>${typeLine}${byLine}
+    Results for Service Supplier: ${st.supplier === ALL ? '(All Suppliers)' : esc(st.supplier)}</p></div>`;
+
+  const exportRows = [];
+  if (!list.length) body += `<div class="empty">${answers.length ? 'No supplier answers match these selections. Widen the date range or set a filter back to All.' : 'No supplier survey answers to show yet.'}</div>`;
+  else body += reportBody(list, st, exportRows);
+
+  body += `<div class="foot"><span>**Question with a Yes or No response. Yes and No have their own columns here and are not in the Top Box figures. In Back Office, Yes was noted in the "Agree" column and No in the "Disagree" column.</span>
+    <span>Source: WarehouseDB.dbo.FactSupplierSurvey${DATA.builtAt ? ` (built ${esc(DATA.builtAt)})` : ''}. Top Box, Top 2 Box and Top 3 Box count rating labels; points are not used. Unanswered questions are left out and not counted.</span>
+    <span>An answer goes to the supplier named on the question, or else to the supplier in the matching role on the file ("Credited by role"). When a file has more than one, each supplier's own rows count the answer, and it is marked as shared. Totals across suppliers count it once, so they can be lower than the rows above them.</span>
+    <span>Comments are the text on the supplier question. Comments in the survey's "Other Comments or Feed Bak" section name no supplier and are not shown here.</span></div>`;
+
+  $('page').innerHTML = body;
+  lastExport = { format: st.format, rows: exportRows };
+}
+
+function exportCsv() {
+  const header = HEADERS[lastExport.format];
+  const q = v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const csv = '﻿' + [header, ...lastExport.rows].map(r => r.map(q).join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `Survey_by_Supplier_${FORMATS[lastExport.format][1]}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+initSelects();
+$('selections').addEventListener('change', e => { if (e.target.id === 'f-type') refreshSuppliers(); render(); });
+$('selections').addEventListener('submit', e => e.preventDefault());
+$('b-export').addEventListener('click', exportCsv);
+$('b-print').addEventListener('click', () => window.print());
+$('b-reset').addEventListener('click', () => { $('selections').reset(); initSelects(); render(); });
+render();
+</script>
+</body>
+</html>
