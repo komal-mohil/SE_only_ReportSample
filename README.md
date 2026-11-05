@@ -4,8 +4,8 @@ A collection of sample reports developed using data from `WarehouseDB`, which co
 
 ### Available Reports
 
-#### 1. Workload Reports
-     Report Source : WarehouseDB.dbo.FactWorkload = udv_workload_view_34 (Service Engine)
+### 1. Workload Reports
+     Report Source : WarehouseDB.dbo.FactWorkload  = udv_workload_view_34 (Service Engine)
 
 - **[View Workload Report](Workload/WorkloadReport.html)**
 - [View Workload Report Documentation](Workload/docs/Workload_Report_All_Points.md)
