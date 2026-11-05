@@ -19,8 +19,8 @@ A collection of sample reports developed using data from `WarehouseDB`, which co
 #### 3. Survey by Supplier Reports
      Report Source : WarehouseDB.dbo.FactSupplierSurvey
 
-- **[View Transferee Survey Report](SupplierSurvey/SurveybySupplier.html)**
-- [View Transferee Survey Documentation](SupplierSurvey/docs/Supplier_Survey_Report_All_Points.md)
+- **[View Survey by Supplier Report](SupplierSurvey/SurveybySupplier.html)**
+- [View Survey by Supplier Documentation](SupplierSurvey/docs/Supplier_Survey_Report_All_Points.md)
 
 ---
 #### 4. Open Points
