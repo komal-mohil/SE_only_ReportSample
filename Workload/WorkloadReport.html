@@ -18,6 +18,7 @@
   --accent-soft: #dde9f2;
   --warn: #9a5b00;
   --warn-soft: #fbefd9;
+  --note: #fff9db; --note-rule: #ecdc9a;
   --bar: #7aa3c2;
   --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
   --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
@@ -27,13 +28,13 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --paper: #18202a; --desk: #10161d; --ink: #e3e8ee; --muted: #9aa6b4; --rule: #2e3a47;
-    --accent: #7db4dc; --accent-soft: #1d3446; --warn: #e6b366; --warn-soft: #3a2c14; --bar: #4f7fa3;
+    --accent: #7db4dc; --accent-soft: #1d3446; --warn: #e6b366; --warn-soft: #3a2c14; --bar: #4f7fa3; --note: #332d14; --note-rule: #5c5120;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --paper: #18202a; --desk: #10161d; --ink: #e3e8ee; --muted: #9aa6b4; --rule: #2e3a47;
-  --accent: #7db4dc; --accent-soft: #1d3446; --warn: #e6b366; --warn-soft: #3a2c14; --bar: #4f7fa3;
+  --accent: #7db4dc; --accent-soft: #1d3446; --warn: #e6b366; --warn-soft: #3a2c14; --bar: #4f7fa3; --note: #332d14; --note-rule: #5c5120;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -44,12 +45,23 @@ body {
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.app { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; max-width: 1280px; margin: 0 auto; align-items: start; }
-@media (max-width: 860px) { .app { grid-template-columns: minmax(0, 1fr); } }
+.app { display: grid; grid-template-columns: 300px minmax(0, 1fr); grid-template-rows: auto auto 1fr; grid-template-areas: "filters report" "filter-notes report" "field-notes report"; gap: 16px 20px; max-width: 1280px; margin: 0 auto; align-items: start; }
+@media (min-width: 1280px) {
+  .app { grid-template-columns: 200px 270px minmax(0, 1fr) 220px; grid-template-rows: auto; grid-template-areas: "filter-notes filters report field-notes"; gap: 16px; max-width: 1760px; }
+  .panel, .notes { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; }
+}
+@media (max-width: 860px) { .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "filters" "filter-notes" "report" "field-notes"; } }
 
 /* Selections panel */
-.panel { background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; display: grid; gap: 14px; position: sticky; top: 16px; }
-@media (max-width: 860px) { .panel { position: static; } }
+.panel { grid-area: filters; background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; display: grid; gap: 14px; }
+.notes-filters { grid-area: filter-notes; }
+.notes-fields { grid-area: field-notes; }
+.notes { background: var(--note); border: 1px solid var(--note-rule); border-radius: 6px; padding: 12px 14px; font-size: 12px; line-height: 1.4; }
+.notes h2 { font: 600 14px/1.25 var(--font-display); margin: 0 0 6px; }
+.notes h3 { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 10px 0 4px; }
+.notes dl { margin: 0; display: grid; gap: 5px; }
+.notes dt { font-weight: 600; }
+.notes dd { margin: 0; }
 .panel h1 { font: 600 17px/1.25 var(--font-display); margin: 0; text-wrap: balance; }
 .panel .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
 fieldset { border: 0; border-top: 1px solid var(--rule); margin: 0; padding: 12px 0 0; display: grid; gap: 8px; min-width: 0; }
@@ -60,6 +72,7 @@ select, input[type="date"] {
   border: 1px solid var(--rule); border-radius: 4px; padding: 5px 7px; width: 100%; min-width: 0;
 }
 .dates { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (min-width: 1280px) { .dates { grid-template-columns: minmax(0, 1fr); } }
 .choice { display: flex; gap: 7px; align-items: flex-start; font-size: 13px; cursor: pointer; }
 .choice input { margin-top: 3px; accent-color: var(--accent); }
 .choice small { display: block; color: var(--muted); font-size: 11.5px; }
@@ -72,7 +85,7 @@ button.secondary { background: transparent; color: var(--accent); }
 button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Summary strip */
-.right { display: grid; gap: 14px; min-width: 0; }
+.right { grid-area: report; display: grid; gap: 14px; min-width: 0; }
 .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 @media (max-width: 560px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .kpi { background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; }
@@ -113,7 +126,7 @@ h3.section { font: 700 15px var(--font-display); margin: 26px 0 0; padding-top: 
 
 @media print {
   body { background: #fff; color: #000; padding: 0; }
-  .panel, .kpis, .notice { display: none !important; }
+  .panel, .notes, .kpis, .notice { display: none !important; }
   .app { display: block; max-width: none; }
   .page { border: 0; padding: 0; background: #fff; color: #000; }
   h3.section { break-before: page; border-top: 0; }
@@ -123,6 +136,19 @@ h3.section { font: 700 15px var(--font-display); margin: 26px 0 0; padding-top: 
 </head>
 <body>
 <div class="app">
+  <aside class="notes notes-filters" aria-label="Notes on the filters">
+    <h2>Filter notes</h2>
+    <dl>
+      <dt>Corporate client, Division, Service, Move type</dt><dd>Keep only services that match. Most rows have no division.</dd>
+      <dt>Service provider is</dt><dd>Who counts as the provider: the consultant on the file, or the user assigned to each action.</dd>
+      <dt>Service provider, Resource role</dt><dd>Keep only matching actions, so a file may be partly counted.</dd>
+      <dt>Date range</dt><dd>Services must start by the end date. In Front load, the start date only affects closed services. In Monthly, actions must be worked in the range.</dd>
+      <dt>Report type</dt><dd>Group by provider or by client. TE detail adds one row per service.</dd>
+      <dt>Hours to report</dt><dd>Front load counts all hours on in-scope services, except cancelled actions. Monthly counts only actions worked in the range.</dd>
+      <dt>Services included</dt><dd>Closed and on-hold services are left out unless ticked.</dd>
+    </dl>
+  </aside>
+
   <form class="panel" id="selections" autocomplete="off">
     <div>
       <h1>Workload Report</h1>
@@ -178,7 +204,6 @@ h3.section { font: 700 15px var(--font-display); margin: 26px 0 0; padding-top: 
 
     <div class="actions">
       <button type="button" id="b-export">Export to Excel (CSV)</button>
-      <button type="button" class="secondary" id="b-print">Print</button>
       <button type="button" class="secondary" id="b-reset">Reset</button>
     </div>
   </form>
@@ -188,6 +213,24 @@ h3.section { font: 700 15px var(--font-display); margin: 26px 0 0; padding-top: 
     <div class="notice" id="notice" hidden></div>
     <section class="page" id="page" aria-live="polite"></section>
   </main>
+
+  <aside class="notes notes-fields" aria-label="Notes on the fields and values">
+    <h2>Field and value notes</h2>
+    <dl>
+      <dt>Source</dt><dd>FactWorkload is a replica of Service Engine's udv_workload_view_34: same columns and same rows.</dd>
+      <dt>Workload Hours</dt><dd>Sum of Resource Time. This is the estimate on the action template, not time recorded.</dd>
+      <dt>0.00 hours</dt><dd>Usually means the action template has no time set.</dd>
+      <dt># of Services</dt><dd>Different services: file + service name + workflow name.</dd>
+      <dt># Files, Workload for N Files</dt><dd>Different file numbers. A file with 3 services counts once.</dd>
+      <dt>Actions</dt><dd>Workflow steps counted. Cancelled actions never count.</dd>
+      <dt>TE detail rows</dt><dd>One row per service, so a file can appear several times.</dd>
+      <dt>Auth/Srvc Date</dt><dd>Earliest action initiated date on the service.</dd>
+      <dt>Service Status</dt><dd>Closed means Cancelled, Financially Closed or Service Complete. On Hold is separate. Anything else is open.</dd>
+      <dt>Status Date</dt><dd>When the service reached its current status.</dd>
+      <dt>FTE</dt><dd>Hours ÷ 154 per month.</dd>
+      <dt>(Unassigned)</dt><dd>No consultant or assigned user on the action.</dd>
+    </dl>
+  </aside>
 </div>
 
 <script>
@@ -430,7 +473,7 @@ function render() {
   }
 
   body += `<div class="foot">
-    <span>Source: WarehouseDB.dbo.FactWorkload (built ${esc(DATA.builtAt)}), one row per Service Engine workflow action. Workload hours = sum of Resource Time (action template Time and Resources) for the actions counted.</span>
+    <span>Source: WarehouseDB.dbo.FactWorkload (built ${esc(DATA.builtAt)}), a replica of Service Engine's udv_workload_view_34, one row per Service Engine workflow action. Workload hours = sum of Resource Time (action template Time and Resources) for the actions counted.</span>
     <span>Service provider: ${st.basis === 'consultant' ? 'the consultant on the file (Back Office equivalent)' : 'the user assigned to each action’s resource role; actions with no assigned user show as (Unassigned)'}. Cancelled actions are never counted.</span></div>`;
 
   $('page').innerHTML = head + body;
@@ -453,7 +496,6 @@ initSelects();
 $('selections').addEventListener('change', e => { if (e.target.id === 'f-basis') refreshProviders(false); render(); });
 $('selections').addEventListener('submit', e => e.preventDefault());
 $('b-export').addEventListener('click', exportCsv);
-$('b-print').addEventListener('click', () => window.print());
 $('b-reset').addEventListener('click', () => { $('selections').reset(); initSelects(); render(); });
 render();
 </script>
