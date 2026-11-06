@@ -29,8 +29,8 @@ All three pages are snapshots, so none updates when its table is rebuilt.
 
 ## Transferee Survey report
 
-- **Contents from the table:** 1 survey (file 278-0031) with 8 question rows and no answers.
-- **Contents from the test data:** 6 surveys and 28 answered rows from an SE_DEV extract. None of these rows are in the gold table.
+- **Contents from the table:** 3 test surveys (files 278-0029, 278-0031, 278-0034) with 27 question rows, all answered. The page reads only this table. They are test data, not real results: 24 rows come from `TE_SurveyResults.xlsx`, Leclerc's 278-0031 answers come from the SE_DEV extract, and the policy comment on 278-0031 and the Yes/No question on all three files are hand-made.
+- **Refreshing the page:** it is a static file, so run `refresh_transferee_report.py` after each rebuild of `FactTransfereeSurvey`. The survey rows are loaded by the three `te_survey_*_2026-11-06.sql` scripts in `dbt/sql`, which need re-running if a reload from SE wipes them.
 - **Formats:** Overall Rollup, Detailed Survey Report, TE Detail Comments and Surveys Requiring Action.
 - **Data differences:** three flag columns hold a single space in the table and are empty in the HTML, with no effect on results.
 - **Rules to confirm:**
@@ -61,8 +61,8 @@ All three pages are snapshots, so none updates when its table is rebuilt.
 
 ## What to do next
 
-1. **Find the missing survey answers:** file 278-0031 has 7 answered rows in the test data but none in the gold table, and the reason isn't known yet.
-2. **Remove the test data:** once answers are loaded, drop it or open on the gold table so test results can't be mistaken for real ones.
+1. **Replace the test surveys:** when real surveys are loaded, undo the three `te_survey_*_2026-11-06.sql` scripts (each has undo statements) so test answers can't be mistaken for real ones.
+2. **Rebuild `FactSupplierSurvey` when ready:** it doesn't have the new survey answers yet, and the rebuild clears its sample rows.
 3. **Confirm the rules:** take the three lists above to Ops, Supplier Mgt or the report owners.
 4. **Test the supplier logic on real data:** once surveys with supplier sections exist, rebuild `FactSupplierSurvey` and regenerate the page. The rebuild also clears the sample rows.
 5. **Add the VIP columns:** carry `client_vip` and `ncm_vip` into `FactSupplierSurvey` at that rebuild.
@@ -104,10 +104,11 @@ These come from the Observations section of each report's All Points file and fr
 | Surveys Requiring Action | There's no sample or definition, and it's unclear whether it's in Phase 1 | Ops |
 | Comments format | The DE note says "No comment option", but Back Office and both report lists expect comments. The page has them, so the note needs correcting | Report owner |
 | View version | The view text we hold is older than the dbt model (ticket 39063), so the port couldn't be checked. Get the current view from SE | SE team |
-| Older forms | The model matches on exact question text, and older forms use different wording. That would leave Service blank. The live table has 0 blanks in 8 rows, which is too few to show this | Data engineer |
+| Older forms | The model matches on exact question text, and older forms use different wording. That would leave Service blank. The live table has 0 blanks in 27 rows, which is too few to show this | Data engineer |
 | "Action at least Started" rule | The dbt model needs `act_dateactive`, which may be the same rule | Data engineer |
 | `Survey Complete Date` | It uses the admin date, so a survey completed but not administered shows no date | Business, data engineer |
-| Test coverage | The data is too small to test the rollup: 1 unanswered survey in the table, and 6 test surveys, of which 4 are answered | Data engineer |
+| Test coverage | The data is too small to test the rollup: 3 test surveys in the table, all answered, so Return Rate shows 100% and unanswered surveys aren't exercised | Data engineer |
+| Yes/No answers | Answers sit in `Rating`, `Text Response` or `Yes or No Response`, depending on question type. `TE_SurveyResults.xlsx` has no Yes/No questions, and the only real `YESNO` question in the template is inactive. A hand-made sample question (S1 Q2, weights 0) now fills `Yes or No Response`, which is `varchar(3)`, but Yes/No points are still untested. Ask SE for a sample with an active Yes/No question and replace the hand-made one | SE team |
 | Test workbook errors | Screenshots and ratings for Russell, Hamilton and Leclerc disagree, so check it before using it to reconcile | Report owner |
 | Trackers and report lists | Row 50 of `Test/Tracker.xlsx` is out of date. One tracker row may cover two reports. The report path differs between sheets. `Report Variants` points to the wrong sample. "KM to confirm which format Anna uses" is unanswered | Report owner |
 | Spec and data definitions | The spec names a different view, and its description looks copied from another spec. The data definitions cite `ResponseText`, but the schema has `ResponseComments` | Data engineer |

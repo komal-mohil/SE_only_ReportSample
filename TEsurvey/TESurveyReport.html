@@ -142,7 +142,6 @@ h3.group { font: 700 15px var(--font-display); margin: 24px 0 0; padding-top: 12
     <fieldset>
       <legend>Selections</legend>
       <label class="field">Corporate client <select id="f-client"></select></label>
-      <label class="choice"><input type="checkbox" id="f-parent"> Parent company rollup</label>
       <label class="field">Consultant <select id="f-consultant"></select></label>
       <label class="field">Division <select id="f-division"></select></label>
       <label class="field">Policy <select id="f-policy"></select></label>
@@ -240,7 +239,7 @@ function buildSurveys(rows) {
     const key = g('File #') + '|' + (g('Survey Sent Date') || '');
     let s = map.get(key);
     if (!s) {
-      s = { key, file: g('File #'), name: g('Name'), client: g('Client') || '(No client)', root: g('Client Name') || '(No client)',
+      s = { key, file: g('File #'), name: g('Name'), client: g('Client') || '(No client)',
             consultant: g('Consultant') || '(No consultant)', doi: g('Domestic or International') || '', division: g('Division') || '(No division)',
             policy: g('Policy') || '(No policy)', moveType: g('Move Type') || '', sent: g('Survey Sent Date'), email: g('Survey Recipient Email'),
             earned: g('Total Points Earned'), possible: g('Total Points Possible'), adminDate: g('Administration Complete Date'),
@@ -283,8 +282,7 @@ function fillSelect(el, label, values, keep) {
 
 function refreshSelects(keep) {
   const set = SURVEYS;
-  const parent = $('f-parent').checked;
-  fillSelect($('f-client'), 'Clients', uniq(set.map(s => parent ? s.root : s.client)), keep);
+  fillSelect($('f-client'), 'Clients', uniq(set.map(s => s.client)), keep);
   fillSelect($('f-consultant'), 'Consultants', uniq(set.map(s => s.consultant)), keep);
   fillSelect($('f-division'), 'Divisions', uniq(set.map(s => s.division)), keep);
   fillSelect($('f-policy'), 'Policies', uniq(set.map(s => s.policy)), keep);
@@ -296,7 +294,7 @@ function refreshSelects(keep) {
 
 function readState() {
   return {
-    format: $('f-format').value, client: $('f-client').value, parent: $('f-parent').checked, consultant: $('f-consultant').value, policy: $('f-policy').value, service: $('f-service').value,
+    format: $('f-format').value, client: $('f-client').value, consultant: $('f-consultant').value, policy: $('f-policy').value, service: $('f-service').value,
     division: $('f-division').value, section: $('f-section').value, transferee: $('f-transferee').value, start: $('f-start').value, end: $('f-end').value,
     move: document.querySelector('input[name="move"]:checked').value, gClient: $('f-gclient').checked, gPolicy: $('f-gpolicy').checked,
     t1: $('f-t1').checked, t2: $('f-t2').checked, t3: $('f-t3').checked, sort: $('f-sort').value, displayOnly: $('f-display').checked,
@@ -305,7 +303,7 @@ function readState() {
 
 function selectSurveys(st) {
   return SURVEYS.filter(s => {
-    if (st.client !== ALL && (st.parent ? s.root : s.client) !== st.client) return false;
+    if (st.client !== ALL && s.client !== st.client) return false;
     if (st.consultant !== ALL && s.consultant !== st.consultant) return false;
     if (st.policy !== ALL && s.policy !== st.policy) return false;
     if (st.service !== ALL && !s.rows.some(r => matchesService(r, st.service))) return false;
@@ -480,7 +478,7 @@ function render() {
   if (!surveys.length) body = `<div class="empty">No surveys match these selections. Widen the date range or set a filter back to All.</div>`;
   else if (st.format === 'rollup') {
     if (st.gClient || st.gPolicy) {
-      const keyOf = s => [st.gClient ? (st.parent ? s.root : s.client) : null, st.gPolicy ? s.policy : null].filter(Boolean).join(' · ');
+      const keyOf = s => [st.gClient ? s.client : null, st.gPolicy ? s.policy : null].filter(Boolean).join(' · ');
       for (const k of uniq(surveys.map(keyOf))) {
         body += `<h3 class="group">${esc(k)}</h3>` + renderRollupTable(surveys.filter(s => keyOf(s) === k), st, exportRows, k);
       }
@@ -506,10 +504,7 @@ function exportCsv() {
 }
 
 refreshSelects(false);
-$('selections').addEventListener('change', e => {
-  if (e.target.id === 'f-parent') refreshSelects(false);
-  render();
-});
+$('selections').addEventListener('change', render);
 $('selections').addEventListener('submit', e => e.preventDefault());
 $('b-export').addEventListener('click', exportCsv);
 $('b-print').addEventListener('click', () => window.print());
