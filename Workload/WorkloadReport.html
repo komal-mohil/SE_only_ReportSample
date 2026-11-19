@@ -47,8 +47,11 @@ body {
 }
 .app { display: grid; grid-template-columns: 300px minmax(0, 1fr); grid-template-rows: auto auto 1fr; grid-template-areas: "filters report" "filter-notes report" "field-notes report"; gap: 16px 20px; max-width: 1280px; margin: 0 auto; align-items: start; }
 @media (min-width: 1280px) {
-  .app { grid-template-columns: 200px 270px minmax(0, 1fr) 220px; grid-template-rows: auto; grid-template-areas: "filter-notes filters report field-notes"; gap: 16px; max-width: 1760px; }
+  .app { grid-template-columns: auto 270px minmax(0, 1fr) auto; grid-template-rows: auto; grid-template-areas: "filter-notes filters report field-notes"; gap: 16px; max-width: 1760px; }
   .panel, .notes { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; }
+  .notes { width: max-content; }
+  .notes-filters:has(details[open]) { width: 200px; }
+  .notes-fields:has(details[open]) { width: 220px; }
 }
 @media (max-width: 860px) { .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "filters" "filter-notes" "report" "field-notes"; } }
 
@@ -57,9 +60,10 @@ body {
 .notes-filters { grid-area: filter-notes; }
 .notes-fields { grid-area: field-notes; }
 .notes { background: var(--note); border: 1px solid var(--note-rule); border-radius: 6px; padding: 12px 14px; font-size: 12px; line-height: 1.4; }
-.notes h2 { font: 600 14px/1.25 var(--font-display); margin: 0 0 6px; }
 .notes h3 { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 10px 0 4px; }
-.notes dl { margin: 0; display: grid; gap: 5px; }
+.notes summary { font: 600 14px/1.25 var(--font-display); cursor: pointer; }
+.notes summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.notes dl { margin: 8px 0 0; display: grid; gap: 5px; }
 .notes dt { font-weight: 600; }
 .notes dd { margin: 0; }
 .panel h1 { font: 600 17px/1.25 var(--font-display); margin: 0; text-wrap: balance; }
@@ -137,7 +141,8 @@ h3.section { font: 700 15px var(--font-display); margin: 26px 0 0; padding-top: 
 <body>
 <div class="app">
   <aside class="notes notes-filters" aria-label="Notes on the filters">
-    <h2>Filter notes</h2>
+    <details>
+    <summary>Filter notes</summary>
     <dl>
       <dt>Corporate client, Division, Service, Move type</dt><dd>Keep only services that match. Most rows have no division.</dd>
       <dt>Service provider is</dt><dd>Who counts as the provider: the consultant on the file, or the user assigned to each action.</dd>
@@ -147,6 +152,7 @@ h3.section { font: 700 15px var(--font-display); margin: 26px 0 0; padding-top: 
       <dt>Hours to report</dt><dd>Front load counts all hours on in-scope services, except cancelled actions. Monthly counts only actions worked in the range.</dd>
       <dt>Services included</dt><dd>Closed and on-hold services are left out unless ticked.</dd>
     </dl>
+    </details>
   </aside>
 
   <form class="panel" id="selections" autocomplete="off">
@@ -215,7 +221,8 @@ h3.section { font: 700 15px var(--font-display); margin: 26px 0 0; padding-top: 
   </main>
 
   <aside class="notes notes-fields" aria-label="Notes on the fields and values">
-    <h2>Field and value notes</h2>
+    <details>
+    <summary>Field and value notes</summary>
     <dl>
       <dt>Source</dt><dd>FactWorkload is a replica of Service Engine's udv_workload_view_34: same columns and same rows.</dd>
       <dt>Workload Hours</dt><dd>Sum of Resource Time. This is the estimate on the action template, not time recorded.</dd>
@@ -230,6 +237,7 @@ h3.section { font: 700 15px var(--font-display); margin: 26px 0 0; padding-top: 
       <dt>FTE</dt><dd>Hours ÷ 154 per month.</dd>
       <dt>(Unassigned)</dt><dd>No consultant or assigned user on the action.</dd>
     </dl>
+    </details>
   </aside>
 </div>
 

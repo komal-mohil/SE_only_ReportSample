@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Service Engine Survey by Supplier</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,500;8..60,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">
 <style>
 /* Layout: the report "dialog" on the left (the ROL Survey selections), the printed report page on the right. Same family as the Workload report. */
 :root {
   --paper: #ffffff; --desk: #eef1f4; --ink: #1b2430; --muted: #5d6877; --rule: #cfd6de;
   --accent: #1f5f8b; --band: #dfe5ea; --warn: #9a5b00; --warn-soft: #fbefd9; --bad: #a33a2c; --bad-soft: #f8e4e0;
+  --note: #fff9db; --note-rule: #ecdc9a;
   --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
   --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --font-data: "IBM Plex Mono", Consolas, "Courier New", monospace;
@@ -19,13 +20,13 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --paper: #18202a; --desk: #10161d; --ink: #e3e8ee; --muted: #9aa6b4; --rule: #2e3a47;
-    --accent: #7db4dc; --band: #26323f; --warn: #e6b366; --warn-soft: #3a2c14; --bad: #ef9a8c; --bad-soft: #3c1f1a;
+    --accent: #7db4dc; --band: #26323f; --warn: #e6b366; --warn-soft: #3a2c14; --bad: #ef9a8c; --bad-soft: #3c1f1a; --note: #332d14; --note-rule: #5c5120;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --paper: #18202a; --desk: #10161d; --ink: #e3e8ee; --muted: #9aa6b4; --rule: #2e3a47;
-  --accent: #7db4dc; --band: #26323f; --warn: #e6b366; --warn-soft: #3a2c14; --bad: #ef9a8c; --bad-soft: #3c1f1a;
+  --accent: #7db4dc; --band: #26323f; --warn: #e6b366; --warn-soft: #3a2c14; --bad: #ef9a8c; --bad-soft: #3c1f1a; --note: #332d14; --note-rule: #5c5120;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -37,10 +38,25 @@ body {
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.app { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; max-width: 1320px; margin: 0 auto; align-items: start; }
-@media (max-width: 860px) { .app { grid-template-columns: minmax(0, 1fr); } }
+.app { display: grid; grid-template-columns: 300px minmax(0, 1fr); grid-template-rows: auto auto 1fr; grid-template-areas: "filters report" "filter-notes report" "field-notes report"; gap: 16px 20px; max-width: 1280px; margin: 0 auto; align-items: start; }
+@media (min-width: 1280px) {
+  .app { grid-template-columns: auto 270px minmax(0, 1fr) auto; grid-template-rows: auto; grid-template-areas: "filter-notes filters report field-notes"; gap: 16px; max-width: 1760px; }
+  .panel, .notes { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; }
+  .notes { width: max-content; }
+  .notes-filters:has(details[open]) { width: 200px; }
+  .notes-fields:has(details[open]) { width: 220px; }
+}
+@media (max-width: 860px) { .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "filters" "filter-notes" "report" "field-notes"; } }
 
-.panel { background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; display: grid; gap: 14px; }
+.notes-filters { grid-area: filter-notes; }
+.notes-fields { grid-area: field-notes; }
+.notes { background: var(--note); border: 1px solid var(--note-rule); border-radius: 6px; padding: 12px 14px; font-size: 12px; line-height: 1.4; }
+.notes summary { font: 600 14px/1.25 var(--font-display); cursor: pointer; }
+.notes summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.notes dl { margin: 8px 0 0; display: grid; gap: 5px; }
+.notes dt { font-weight: 600; }
+.notes dd { margin: 0; }
+.panel { grid-area: filters; background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; display: grid; gap: 14px; }
 .panel h1 { font: 600 17px/1.25 var(--font-display); margin: 0; text-wrap: balance; }
 .panel .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
 fieldset { border: 0; border-top: 1px solid var(--rule); margin: 0; padding: 12px 0 0; display: grid; gap: 8px; min-width: 0; }
@@ -63,8 +79,8 @@ button {
 button.secondary { background: transparent; color: var(--accent); }
 button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.right { display: grid; gap: 14px; min-width: 0; }
-.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.right { grid-area: report; display: grid; gap: 14px; min-width: 0; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 @media (max-width: 640px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .kpi { background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; }
 .kpi b { display: block; font: 500 20px var(--font-data); font-variant-numeric: tabular-nums; }
@@ -112,119 +128,145 @@ h3.group { font: 700 15px var(--font-display); margin: 24px 0 0; padding-top: 12
 
 @media print {
   body { background: #fff; color: #000; padding: 0; }
-  .panel, .kpis, .notice { display: none !important; }
+  .panel, .notes, .kpis, .notice { display: none !important; }
   .app { display: block; max-width: none; }
   .page { border: 0; padding: 0; background: #fff; color: #000; }
   .survey { break-inside: avoid; }
 }
-/* Survey by Supplier additions */
-.rhead { text-align: center; }
-.rtop { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: baseline; font-size: 12.5px; }
-.rtop span:first-child { text-align: left; }
-tr.grp td { font: 700 16px var(--font-display); padding-top: 20px; border-bottom: 1px solid var(--ink); }
-tr.sup td { font: 700 15px var(--font-display); padding-top: 18px; }
-.supmeta { font: 400 12px var(--font-body); color: var(--muted); margin-left: 8px; }
-tr.qtext td { font-style: italic; padding-top: 10px; padding-left: 24px; }
-.te { display: grid; grid-template-columns: 44px 110px minmax(130px, 200px) 150px minmax(0, 1fr); gap: 8px; align-items: baseline; }
-.vip { font-size: 12px; }
-.ansval { color: var(--muted); }
-tr.det.low .ansval { color: var(--bad); font-weight: 600; }
-tr.cmt td { padding-left: 170px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
-@media (max-width: 560px) { .te { grid-template-columns: 36px minmax(0, 1fr); } .te > span:nth-child(n+3) { grid-column: 2; } tr.cmt td { padding-left: 52px; } }
-tr.tot td:first-child, tr.qlabel td:first-child { padding-left: 24px; }
-tr.qlabel td:first-child { font-style: italic; }
-tr.tot td, tr.qlabel td { padding-bottom: 8px; }
-tr.sectot td { font-weight: 600; border-top: 1px solid var(--rule); padding-top: 6px; }
-tr.suptot td { font-weight: 700; border-top: 1px solid var(--ink); padding-top: 6px; }
-tr.grand td:first-child { text-align: right; }
-h3.outer { font: 700 17px var(--font-display); margin: 24px 0 0; }
-@media print { .tablewrap { overflow: visible; } thead { display: table-header-group; } tr { break-inside: avoid; } }
+/* Added for the report formats Bert sent (Overall Rollup, Surveys Requiring Action, Detailed) and the WOW / ACE scorecard. */
+:root { --good: #23703f; --good-soft: #e0f1e5; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --good: #8fd3a5; --good-soft: #1b3324; } }
+:root[data-theme="dark"] { --good: #8fd3a5; --good-soft: #1b3324; }
+.pill { white-space: nowrap; }
+.pill.ok { background: var(--good-soft); color: var(--good); font-weight: 600; }
+.pill.no { background: var(--bad-soft); color: var(--bad); font-weight: 600; }
+td.met { color: var(--good); font-weight: 600; }
+td.miss { color: var(--bad); font-weight: 600; }
+td.na { color: var(--muted); }
+th.c, td.c { text-align: center; }
+tr.sub th { border-bottom: 1px solid var(--rule); padding-top: 0; }
+tr.cat td { border-top: 1px solid var(--rule); }
+.scoreh { font: 700 16px var(--font-display); margin: 22px 0 2px; }
+.scoreh small { font: 400 12.5px var(--font-body); color: var(--muted); margin-left: 6px; }
+.verdict { margin-top: 10px; padding: 8px 12px; border-radius: 4px; background: var(--band); font-size: 13px; }
+.verdict b { font-weight: 600; }
+.small { font-size: 12px; color: var(--muted); }
+table.list td { border-bottom: 1px solid var(--rule); padding-block: 5px; }
+</style>
+<style>
+/* Survey by Supplier: the Back Office "ROL Survey by Supplier" layouts. */
+table.sup td { padding-block: 2px; }
+tr.supname td { font: 700 15px var(--font-display); padding-top: 18px; border-bottom: 1px solid var(--rule); }
+tr.secname td { font-weight: 600; padding-top: 10px; }
+tr.qlabel td { padding-left: 24px; padding-top: 8px; }
+tr.qlabel.sub td:first-child { font-style: italic; }
+tr.te td:first-child { padding-left: 40px; }
+.te-line { display: grid; grid-template-columns: 44px 110px minmax(120px, 200px) minmax(0, 1fr); gap: 8px; font-size: 12.5px; }
+.te-line .vip { color: var(--muted); font-size: 11.5px; }
+.te-line .ans.low { color: var(--bad); font-weight: 600; }
+tr.cmt td { padding: 0 8px 4px 96px; font-size: 12.5px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+tr.qtot td { padding-top: 3px; padding-bottom: 8px; }
+tr.qtot td:first-child { padding-left: 24px; }
+tr.sectot td { font-weight: 700; padding-top: 10px; padding-bottom: 6px; }
+tr.suptot td { font-weight: 700; border-top: 1px solid var(--rule); padding-top: 8px; padding-bottom: 6px; }
+tr.cat td { font-style: italic; font-weight: 600; padding-left: 24px; padding-top: 6px; }
+tr.srow td:first-child { padding-left: 40px; }
+.sample-tag { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 8px; font-size: 10.5px; background: var(--warn-soft); color: var(--warn); font-weight: 600; vertical-align: middle; }
 </style>
 </head>
 <body>
 <div class="app">
+  <aside class="notes notes-filters" aria-label="Notes on the filters">
+    <details>
+    <summary>Filter notes</summary>
+    <dl>
+      <dt>Same as Back Office</dt><dd>Corporate Client, Service Provider, Supplier Type, Supplier, Report Format, Show Comments, Date Range. Department (Profit Center) is left out: SE has no profit centers.</dd>
+      <dt>Service provider</dt><dd>The consultant on the file.</dd>
+      <dt>Supplier</dt><dd>Question Contact Company on the question: the supplier organization SE linked to that question.</dd>
+      <dt>Supplier type</dt><dd>The survey section the question is in: Household Goods, Auto Shipment, Temporary Living and so on, like Back Office's supplier types.</dd>
+      <dt>Date range</dt><dd>Survey Sent Date.</dd>
+      <dt>Show comments</dt><dd>Shows the transferee's written comment under their answer. Back Office users keep it checked.</dd>
+    </dl>
+    </details>
+  </aside>
+
   <form class="panel" id="selections" autocomplete="off">
     <div>
       <h1>Survey by Supplier</h1>
-      <p class="sub">Service Engine data, from FactSupplierSurvey</p>
+      <div class="sub">Service Engine · ROL Survey by Supplier</div>
     </div>
 
     <fieldset>
+      <legend>Report format</legend>
+      <select id="f-format" aria-label="Report format">
+        <option value="detail">Summary by Supplier with Detail</option>
+        <option value="supplier">Summary by Supplier</option>
+        <option value="section">Summary by Section</option>
+      </select>
+      <label class="choice" id="w-comments"><input type="checkbox" id="f-comments" checked> Show Comments</label>
+    </fieldset>
+
+    <fieldset>
       <legend>Selections</legend>
-      <label class="field">Corporate Client <select id="f-client"></select></label>
-      <label class="field">Service Provider <select id="f-provider"></select></label>
-      <label class="field">Supplier Type <select id="f-type"></select></label>
+      <label class="field">Corporate client <select id="f-client"></select></label>
+      <label class="field">Service provider <select id="f-provider"></select></label>
+      <label class="field">Supplier type <select id="f-type"></select></label>
       <label class="field">Supplier <select id="f-supplier"></select></label>
     </fieldset>
 
     <fieldset>
-      <legend>Report Format</legend>
-      <label class="field">Format
-        <select id="f-format">
-          <option value="detail">Summary by Supplier with Detail</option>
-          <option value="summary">Summary by Supplier</option>
-          <option value="section">Summary by Section</option>
-          <option value="scorecard">Supplier Scorecard</option>
-          <option value="comments">Supplier Comments</option>
-        </select>
-      </label>
-      <label class="field">Group By
-        <select id="f-group">
-          <option value="supplier">Supplier</option>
-          <option value="provider">Service Provider</option>
-          <option value="client">Client</option>
-          <option value="type">Supplier Type</option>
-        </select>
-      </label>
-      <label class="choice" id="w-comments"><input type="checkbox" id="f-comments" checked> Show Comments</label>
-      <div class="row3" id="w-metrics">
-        <label class="choice"><input type="checkbox" id="f-t1" checked> Top Box</label>
-        <label class="choice"><input type="checkbox" id="f-t2" checked> Top 2 Box</label>
-        <label class="choice"><input type="checkbox" id="f-t3" checked> Top 3 Box</label>
+      <legend>Date range (survey sent)</legend>
+      <div class="dates">
+        <label class="field">Start date <input type="date" id="f-start"></label>
+        <label class="field">End date <input type="date" id="f-end"></label>
       </div>
+      <span class="hint">Leave both blank for all surveys.</span>
     </fieldset>
 
-    <fieldset>
-      <legend>Survey Sent Date</legend>
-      <div class="dates">
-        <label class="field">Start <input type="date" id="f-start"></label>
-        <label class="field">End <input type="date" id="f-end"></label>
-      </div>
+    <fieldset id="w-sample">
+      <legend>Sample data</legend>
+      <label class="choice"><input type="checkbox" id="f-sample" checked> Show sample rows</label>
+      <span class="hint">SE has no supplier answers yet. Sample rows show the layout and are marked SAMPLE.</span>
     </fieldset>
 
     <div class="actions">
-      <button type="button" id="b-export">Excel (CSV)</button>
-      <button type="button" class="secondary" id="b-print">Print</button>
+      <button type="button" id="b-export">Export to Excel (CSV)</button>
       <button type="button" class="secondary" id="b-reset">Reset</button>
     </div>
   </form>
 
   <main class="right">
+    <div class="notice" id="notice"></div>
     <div class="kpis" id="kpis"></div>
-    <div class="notice" id="notice" hidden></div>
     <section class="page" id="page" aria-live="polite"></section>
   </main>
+
+  <aside class="notes notes-fields" aria-label="Notes on the fields and values">
+    <details>
+    <summary>Field and value notes</summary>
+    <dl>
+      <dt>Source</dt><dd>WarehouseDB.dbo.FactTransfereeSurvey, a copy of SE's udv_transferee_survey_view_34: the same data as the Transferee Survey report.</dd>
+      <dt>Supplier question</dt><dd>Any question outside the NuCompass sections (NuCompass Mobility Inc., NuCompass Consultant, Expense Management, CoPilot, Other Comments). In SE these are the service sections: Household Goods, Auto Shipment, Temporary Living, Training, Destination Services.</dd>
+      <dt>Rating scale</dt><dd>Very Dissatisfied (1 star) to Very Satisfied (5 stars). Back Office used Strongly Disagree to Strongly Agree.</dd>
+      <dt>Top Box</dt><dd>Very Satisfied ÷ all answers. Top 2 adds Satisfied, Top 3 adds Somewhat Satisfied. Counted from the label, not the points.</dd>
+      <dt>Yes / No questions (**)</dt><dd>Yes counts under Satisfied and No under Dissatisfied, as Back Office put Yes under Agree and No under Disagree.</dd>
+      <dt>(VIP)</dt><dd>Client VIP or NCM VIP is Yes on the file.</dd>
+      <dt>Remove From Report / Calc</dt><dd>Remove From Report hides the answer; Remove From Calc shows it but leaves it out of the counts.</dd>
+    </dl>
+    </details>
+  </aside>
 </div>
 
 <script>
-const DATA = {"fields":["File #","Name","Client","Consultant","Survey ID","Survey Sent Date","Survey Section Name","Survey Section Question Number","Survey Question","Yes or No Response","Text Response","Rating","Remove From Report","Remove From Calc","Supplier ID","Supplier","Supplier Type","Supplier Role","Supplier Match","Suppliers On Question"],"rows":[["SAMPLE-001","Sample, Transferee 1","SAMPLE DATA","Sample Consultant",-1,"2026-08-03","Household Goods","S3 Q1","How satisfied were you with the overall quality of the moving services provided?","","Sample comment: the crew was careful.","Very Satisfied"," "," ",-1,"SAMPLE Van Line","Van Line","Household Goods Provider","Question contact",1],["SAMPLE-001","Sample, Transferee 1","SAMPLE DATA","Sample Consultant",-1,"2026-08-03","Auto Shipment","S4 Q1","How satisfied were you with the overall quality of your automobile transportation?","","","Satisfied"," "," ",-2,"SAMPLE Auto Shipper A","Auto Shipment","Auto Shipper","Service role",1],["SAMPLE-002","Sample, Transferee 2","SAMPLE DATA","Sample Consultant",-2,"2026-08-10","Household Goods","S3 Q1","How satisfied were you with the overall quality of the moving services provided?","","Sample comment: delivery was late.","Dissatisfied"," "," ",-1,"SAMPLE Van Line","Van Line","Household Goods Provider","Service role",1],["SAMPLE-002","Sample, Transferee 2","SAMPLE DATA","Sample Consultant",-2,"2026-08-10","Temporary Living","S5 Q1","How satisfied were you with your corporate housing experience?","","","Somewhat Satisfied"," "," ",-4,"SAMPLE Corporate Housing","Temporary Accommodations","Temp Living Provider","Service role",1],["SAMPLE-003","Sample, Transferee 3","SAMPLE DATA","Sample Consultant",-3,"2026-08-12","Auto Shipment","S4 Q1","How satisfied were you with the overall quality of your automobile transportation?","","","Very Satisfied"," "," ",-2,"SAMPLE Auto Shipper A","Auto Shipment","Auto Shipper","Service role",2],["SAMPLE-003","Sample, Transferee 3","SAMPLE DATA","Sample Consultant",-3,"2026-08-12","Auto Shipment","S4 Q1","How satisfied were you with the overall quality of your automobile transportation?","","","Very Satisfied"," "," ",-3,"SAMPLE Auto Shipper B","Auto Shipment","Auto Shipper","Service role",2],["SAMPLE-004","Sample, Transferee 4","SAMPLE DATA","Sample Consultant",-4,"2026-09-01","Household Goods","S3 Q1","How satisfied were you with the overall quality of the moving services provided?","","","Satisfied"," "," ",-1,"SAMPLE Van Line","Van Line","Household Goods Provider","Question contact",1],["SAMPLE-004","Sample, Transferee 4","SAMPLE DATA","Sample Consultant",-4,"2026-09-01","Temporary Living","S5 Q1","How satisfied were you with your corporate housing experience?","","Sample comment: the apartment was not ready.","Very Dissatisfied"," "," ",-4,"SAMPLE Corporate Housing","Temporary Accommodations","Temp Living Provider","Service role",1],["SAMPLE-005","Sample, Transferee 5","SAMPLE DATA","Sample Consultant",-5,"2026-09-15","Auto Shipment","S4 Q1","How satisfied were you with the overall quality of your automobile transportation?","","","Satisfied"," ","Y",-3,"SAMPLE Auto Shipper B","Auto Shipment","Auto Shipper","Service role",1]],"builtAt":"2026-11-05 11:09"};
+const DATA = {"fields":["File #","Name","Client","Client Name","Consultant","Domestic or International","Status","Division","Policy","Move Type","Client VIP","NCM VIP","Survey Sent Date","Survey Last Sent Date","Number of Surveys Sent","Survey Complete Date","Survey Recipient Email","Survey Section Number","Survey Section Name","Survey Section Question Number","Survey Question","Rating Points","Yes or No Response","Text Response","Rating","Question Contact","Question Contact Role","Question Contact Company","Service","Total Points Earned","Total Points Possible","Administration Complete Date","Administration Completed By","Counselor Response","Remove From Report","Remove From Calc","Display Response"],"table":[["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",1,"NuCompass Mobility Inc.","S1 Q1","How satisfied were you with the services provided by NuCompass?",1,null,null,"Very Satisfied","Karen Counselor","File Manager","NuCompass Mobility","Authorization, Automobiile Shipment, Career and Family, CPE, CPX, Cross-Cultural Training, DNU Authorization, Eval Language Training, Expense Management, Home Purchase, Home Sale Assistance, Household Goods, Lease Termination, Mortgage Referral, Property Management, Rental Assistance, Settling In Services, Survey, Temp Living, Travel Services, Work Order",6,30,null,null,null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",1,"NuCompass Mobility Inc.","S1 Q2","SAMPLE: Would you recommend NuCompass to a friend or colleague?",0,"Yes",null,null,"Karen Counselor","File Manager","NuCompass Mobility","All Services",6,30,null,null,null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q1","How likely are you to recommend your NuCompass Consultant to a friend or colleague?",1,null,null,"Very Satisfied","Karen Counselor","File Manager","NuCompass Mobility","Authorization, Automobiile Shipment, Career and Family, CPE, CPX, Cross-Cultural Training, DNU Authorization, Eval Language Training, Expense Management, Home Purchase, Home Sale Assistance, Household Goods, Lease Termination, Mortgage Referral, Property Management, Rental Assistance, Settling In Services, Survey, Temp Living, Travel Services, Work Order",6,30,null,null,null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q2","How satisfied are you with your Consultant's knowledge of your policy and services provided?",1,null,null,"Very Satisfied","Karen Counselor","File Manager","NuCompass Mobility","Authorization, Automobiile Shipment, Career and Family, CPE, CPX, Cross-Cultural Training, DNU Authorization, Eval Language Training, Expense Management, Home Purchase, Home Sale Assistance, Household Goods, Lease Termination, Mortgage Referral, Property Management, Rental Assistance, Settling In Services, Survey, Temp Living, Travel Services, Work Order",6,30,null,null,null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q3","How satisfied are you with your Consultant's responsiveness?",1,null,null,"Very Satisfied","Karen Counselor","File Manager","NuCompass Mobility","Authorization",6,30,null,null,null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",3,"Expense Management","S3 Q1","How satisfied were you with the overall quality of your automobile How satisfied were you with the way your expenses were processed in accordance with your employer's policy?",1,null,null,"Very Satisfied",null,null,null,"Expense Management",6,30,null,null,null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",4,"CoPilot","S4 Q1","How satisfied are you with our technology platform for ease of use and as a valuable resource?",1,null,null,"Very Satisfied","Karen Counselor","File Manager","NuCompass Mobility","All Services",6,30,null,null,null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q1","Please make any comments about your overall experience.",0,null,"Excellent experience all round.",null,"Karen Counselor","File Manager","NuCompass Mobility","All Services",6,30,null,null,null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q2","Please provide feedback about your employer's policy.",0,null,"Great policy.  ",null,"Karen Counselor","File Manager","NuCompass Mobility","All Services",6,30,null,null,null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q3","Is there someone, or a group of people, that you would like to recognize for their service?",0,null,"The fantastic NCM Team.",null,"Karen Counselor","File Manager","NuCompass Mobility","All Services",6,30,null,null,null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",6,"Temporary Living","S6 Q1","How satisfied were you with your corporate housing experience?",2,null,"Apartment was clean and close to the office.","Satisfied","Orders Contact","File Manager","zReloQuest","Temp Living",6,30,null,null,null,null,null,null],["278-0029","Antonelli, Kimi","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Standard Program - PIR","Permanent International Relocation",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",7,"Auto Shipment","S7 Q1","How satisfied were you with the overall quality of your automobile transportation experience?",1,null,null,"Very Satisfied","Eric ArlingtonAuto","Auto Shipper","Arlington Auto Shippers","Automobiile Shipment",6,30,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",1,"NuCompass Mobility Inc.","S1 Q1","How satisfied were you with the services provided by NuCompass?",3,null,null,"Somewhat Satisfied","Kristen Pifer","File Manager","NuCompass Mobility","Authorization, Automobiile Shipment, Career and Family, CPE, CPX, Cross-Cultural Training, DNU Authorization, Eval Language Training, Expense Management, Home Purchase, Home Sale Assistance, Household Goods, Lease Termination, Mortgage Referral, Property Management, Rental Assistance, Settling In Services, Survey, Temp Living, Travel Services, Work Order",11,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",1,"NuCompass Mobility Inc.","S1 Q2","SAMPLE: Would you recommend NuCompass to a friend or colleague?",0,"Yes",null,null,"Kristen Pifer","File Manager","NuCompass Mobility","All Services",11,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q1","How likely are you to recommend your NuCompass Consultant to a friend or colleague?",1,null,null,"Very Satisfied","Kristen Pifer","File Manager","NuCompass Mobility","Authorization, Automobiile Shipment, Career and Family, CPE, CPX, Cross-Cultural Training, DNU Authorization, Eval Language Training, Expense Management, Home Purchase, Home Sale Assistance, Household Goods, Lease Termination, Mortgage Referral, Property Management, Rental Assistance, Settling In Services, Survey, Temp Living, Travel Services, Work Order",11,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q2","How satisfied are you with your Consultant's knowledge of your policy and services provided?",1,null,null,"Very Satisfied","Kristen Pifer","File Manager","NuCompass Mobility","Authorization, Automobiile Shipment, Career and Family, CPE, CPX, Cross-Cultural Training, DNU Authorization, Eval Language Training, Expense Management, Home Purchase, Home Sale Assistance, Household Goods, Lease Termination, Mortgage Referral, Property Management, Rental Assistance, Settling In Services, Survey, Temp Living, Travel Services, Work Order",11,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",3,"Expense Management","S3 Q1","How satisfied were you with the overall quality of your automobile How satisfied were you with the way your expenses were processed in accordance with your employer's policy?",2,null,null,"Satisfied","Expense Karen","Expense Analyst","NuCompass Mobility","Expense Management",11,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",4,"CoPilot","S4 Q1","How satisfied are you with our technology platform for ease of use and as a valuable resource?",4,null,null,"Dissatisfied","Kristen Pifer","File Manager","NuCompass Mobility","All Services",11,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q1","Please make any comments about your overall experience.",0,null,"The support of the consultant very good but the tools were not easy to work with.",null,"Kristen Pifer","File Manager","NuCompass Mobility","All Services",11,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q2","Please provide feedback about your employer's policy.",0,null,"SAMPLE: The policy was fair and covered what I needed for my move.",null,"Kristen Pifer","File Manager","NuCompass Mobility","All Services",11,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",5,"Other Comments or Feed Bak","S5 Q3","Is there someone, or a group of people, that you would like to recognize for their service?",0,null,"I appreciate the time the expense analyst spent with me when I had questions about reimbursements.",null,"Kristen Pifer","File Manager","NuCompass Mobility","All Services",11,25,null,null,null,null,null,null],["278-0031","Leclerc, Charles","Global Products and Services","Global Products and Services","Kristen Pifer","US Domestic","Active","Shared Serv","Standard Program","US Domestic",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",6,"Household Goods","S6 Q1","How satisfied were you with the overall quality of the moving services provided? ",3,null,"Two boxes arrived damaged; the claim is still open.","Somewhat Satisfied","Karen ABCVanline","Household Goods Provider","ABC Van Line","Household Goods",11,25,null,null,null,null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",1,"NuCompass Mobility Inc.","S1 Q1","How satisfied were you with the services provided by NuCompass?",2,null,null,"Satisfied","Karen Counselor","File Manager","NuCompass Mobility","Authorization, Automobiile Shipment, Career and Family, CPE, CPX, Cross-Cultural Training, DNU Authorization, Eval Language Training, Expense Management, Home Purchase, Home Sale Assistance, Household Goods, Lease Termination, Mortgage Referral, Property Management, Rental Assistance, Settling In Services, Survey, Temp Living, Travel Services, Work Order",10,20,null,null,"It was good.  ",null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",1,"NuCompass Mobility Inc.","S1 Q2","SAMPLE: Would you recommend NuCompass to a friend or colleague?",0,"No",null,null,"Karen Counselor","File Manager","NuCompass Mobility","All Services",10,20,null,null,null,null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q1","How likely are you to recommend your NuCompass Consultant to a friend or colleague?",2,null,null,"Satisfied","Karen Counselor","File Manager","NuCompass Mobility","Authorization, Automobiile Shipment, Career and Family, CPE, CPX, Cross-Cultural Training, DNU Authorization, Eval Language Training, Expense Management, Home Purchase, Home Sale Assistance, Household Goods, Lease Termination, Mortgage Referral, Property Management, Rental Assistance, Settling In Services, Survey, Temp Living, Travel Services, Work Order",10,20,null,null,null,null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",2,"NuCompass Consultant","S2 Q2","How satisfied are you with your Consultant's knowledge of your policy and services provided?",2,null,null,"Satisfied","Karen Counselor","File Manager","NuCompass Mobility","Authorization, Automobiile Shipment, Career and Family, CPE, CPX, Cross-Cultural Training, DNU Authorization, Eval Language Training, Expense Management, Home Purchase, Home Sale Assistance, Household Goods, Lease Termination, Mortgage Referral, Property Management, Rental Assistance, Settling In Services, Survey, Temp Living, Travel Services, Work Order",10,20,null,null,null,null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",3,"CoPilot","S3 Q1","How satisfied are you with our technology platform for ease of use and as a valuable resource?",4,null,null,"Dissatisfied","Karen Counselor","File Manager","NuCompass Mobility","All Services",10,20,null,null,null,null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",4,"Other Comments or Feed Bak","S4 Q1","Please make any comments about your overall experience.",0,null,"Good customer service.  The portal was not very effective.",null,"Karen Counselor","File Manager","NuCompass Mobility","All Services",10,20,null,null,null,null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",4,"Other Comments or Feed Bak","S4 Q2","Please provide feedback about your employer's policy.",0,null,"it seems to be a fair policy.  Covered most costs.",null,"Karen Counselor","File Manager","NuCompass Mobility","All Services",10,20,null,null,null,null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",4,"Other Comments or Feed Bak","S4 Q3","Is there someone, or a group of people, that you would like to recognize for their service?",0,null,"The NCM team was very responsive.",null,"Karen Counselor","File Manager","NuCompass Mobility","All Services",10,20,null,null,null,null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",5,"Household Goods","S5 Q1","How satisfied were you with the overall quality of the moving services provided? ",1,null,null,"Very Satisfied","Test Vanline","Household Goods Provider","Move Caddy","Household Goods",10,20,null,null,null,null,null,null],["278-0034","Russell II, George","Global Products and Services","Global Products and Services","Karen Counselor","International","Active","Shared Serv","Executive LTA","Long Term Assignment",null,null,"2026-07-13","2026-07-27",3,null,"kmeisel@nucompass.com",6,"Auto Shipment","S6 Q1","How satisfied were you with the overall quality of your automobile transportation experience?",4,null,"Car arrived four days late.","Dissatisfied","Eric ArlingtonAuto","Auto Shipper","Arlington Auto Shippers","Automobiile Shipment",10,20,null,null,null,null,null,null]],"builtAt":"2026-11-18 16:12"};
 
-// The five SE ratings, low to high, laid out left to right like the Back Office Disagree-to-Agree columns.
-const SCALE = ['Very Dissatisfied', 'Dissatisfied', 'Somewhat Satisfied', 'Satisfied', 'Very Satisfied'];
-const LOW = new Set(['Very Dissatisfied', 'Dissatisfied']);
 const ALL = '__all__';
-const NO_TYPE = '(No type)';
+const SCALE = ['Very Dissatisfied', 'Dissatisfied', 'Somewhat Satisfied', 'Satisfied', 'Very Satisfied'];
+const TOP = { 1: ['Very Satisfied'], 2: ['Very Satisfied', 'Satisfied'], 3: ['Very Satisfied', 'Satisfied', 'Somewhat Satisfied'] };
+const NEGATIVE = ['Very Dissatisfied', 'Dissatisfied'];
+// Sections about NuCompass itself. Every other section on the SE survey is a service (supplier) section.
+const NUCOMPASS_SECTION = /^(NuCompass Mobility|NuCompass Consultant|Expense Management|CoPilot|Other Comments)/i;
 
-// Supplier Type comes from the survey section, in Back Office terms: the fact's own Supplier Type column holds
-// ORGTYP descriptions such as Van Line, sometimes several per supplier, which can't match values like HHG.
-const SERVICE_LINE = {
-  'Household Goods': 'HHG', 'Auto Shipment': 'Auto', 'Temporary Living': 'Temp Housing',
-  'Cross-Cultural Training': 'Cross-Cultural Training', 'Language Training': 'Language Training', 'Destination Services': 'Destination Services',
-};
-// Back Office Supplier Types with no question on the SE survey: listed so the gap is visible, but they can't be picked.
-const NO_SE_QUESTION = ['HFP Agent', 'Home Sale Agent', 'Mortgage', 'Property Management', 'Rental Assistance'];
-
-// Question text is stored URL-encoded; the view decodes only four sequences, and older forms start with "o<tab>".
 function cleanQuestion(q) {
   if (!q) return '';
   const s = q.replace(/%u([0-9a-fA-F]{4})/g, (m, h) => String.fromCharCode(parseInt(h, 16)))
@@ -232,375 +274,225 @@ function cleanQuestion(q) {
   return s.replace(/^o\s+/, '').replace(/\s+/g, ' ').trim();
 }
 
-const isYes = v => /^y/i.test(String(v ?? '').trim());
-const F = Object.fromEntries(DATA.fields.map((f, i) => [f, i]));
-const answers = DATA.rows.map(r => {
-  const g = f => r[F[f]];
-  const qn = /S(\d+) Q(\d+)/.exec(g('Survey Section Question Number') || '') || [0, 0, 0];
-  const section = g('Survey Section Name') || '(No section)';
-  return {
-    file: g('File #'), name: g('Name'), client: g('Client') || '(No client)', consultant: g('Consultant') || '(No consultant)',
-    survey: g('Survey ID'), sent: g('Survey Sent Date'), secNo: +qn[1], qNo: +qn[2], qKey: g('Survey Section Question Number'),
-    section, stype: SERVICE_LINE[section] || section, question: cleanQuestion(g('Survey Question')),
-    rating: g('Rating') || '', yn: g('Yes or No Response') || '', text: g('Text Response') || '',
-    removeRpt: g('Remove From Report') === 'Y', removeCalc: g('Remove From Calc') === 'Y',
-    // Not in FactSupplierSurvey yet: shows as soon as the snapshot carries Client VIP / NCM VIP.
-    vip: isYes(g('Client VIP')) || isYes(g('NCM VIP')),
-    supplierId: g('Supplier ID'), supplier: g('Supplier'), types: (g('Supplier Type') || NO_TYPE).split(', '),
-    role: g('Supplier Role') || '', match: g('Supplier Match') || '', shared: +g('Suppliers On Question') || 1,
+// One answer per row: only questions in supplier sections, answered, not Remove From Report.
+function fromView() {
+  const F = Object.fromEntries(DATA.fields.map((f, i) => [f, i]));
+  const out = [];
+  for (const r of DATA.table) {
+    const g = f => (f in F ? r[F[f]] : null);
+    const section = (g('Survey Section Name') || '').replace(/Feed Bak$/, 'Feed Back');
+    if (!section || NUCOMPASS_SECTION.test(section)) continue;
+    const rating = g('Rating') || '', yn = g('Yes or No Response') || '', text = g('Text Response') || '';
+    if (!rating && !yn && !text) continue;
+    if (g('Remove From Report') === 'Y') continue;
+    const qn = /S(\d+) Q(\d+)/.exec(g('Survey Section Question Number') || '') || [0, 0, 0];
+    out.push({ file: g('File #'), name: g('Name'), client: g('Client') || '(No client)', provider: g('Consultant') || '(No consultant)',
+               sent: g('Survey Sent Date'), vip: g('Client VIP') === 'Yes' || g('NCM VIP') === 'Yes',
+               section, secNo: +qn[1], qNo: +qn[2], question: cleanQuestion(g('Survey Question')), rating, yn, text,
+               supplier: g('Question Contact Company') || '(No supplier on question)', type: section, role: g('Question Contact Role') || '',
+               contact: g('Question Contact') || '', removeCalc: g('Remove From Calc') === 'Y', sample: false });
+  }
+  return out;
+}
+
+// Made-up answers in SE's own supplier sections and questions, used only while SE has no supplier answers.
+function sampleRows() {
+  const Q = {
+    hhg:  ['Household Goods', 3, 1, 'How satisfied were you with the overall quality of the moving services provided?', 'Household Goods'],
+    auto: ['Auto Shipment', 4, 1, 'How satisfied were you with the overall quality of your automobile transportation experience?', 'Auto Shipment'],
+    tlv:  ['Temporary Living', 5, 1, 'How satisfied were you with your corporate housing experience?', 'Temporary Living'],
+    dest: ['Destination Services', 8, 1, 'How satisfied were you with the local service provider who helped you at your destination?', 'Destination Services'],
   };
-}).filter(a => !a.removeRpt);
+  const TE = [['SAMPLE-01', 'Sample, Transferee A', 'Sample Client 1', 'Sample Consultant 1', '2026-07-14', false],
+              ['SAMPLE-02', 'Sample, Transferee B', 'Sample Client 1', 'Sample Consultant 2', '2026-08-05', true],
+              ['SAMPLE-03', 'Sample, Transferee C', 'Sample Client 2', 'Sample Consultant 1', '2026-08-21', false],
+              ['SAMPLE-04', 'Sample, Transferee D', 'Sample Client 2', 'Sample Consultant 2', '2026-09-09', false],
+              ['SAMPLE-05', 'Sample, Transferee E', 'Sample Client 1', 'Sample Consultant 1', '2026-10-02', false],
+              ['SAMPLE-06', 'Sample, Transferee F', 'Sample Client 2', 'Sample Consultant 2', '2026-10-20', true]];
+  const A = [ // transferee index, question, supplier, rating, comment
+    [0, 'hhg', 'Sample Van Lines', 'Very Satisfied', 'Crew was careful and on time.'], [0, 'tlv', 'Sample Corporate Housing', 'Satisfied', ''],
+    [1, 'hhg', 'Sample Van Lines', 'Satisfied', ''], [1, 'auto', 'Sample Auto Transport', 'Dissatisfied', 'Car arrived four days late.'],
+    [1, 'dest', 'Sample Destination Services', 'Very Satisfied', ''],
+    [2, 'hhg', 'Sample Moving & Storage', 'Somewhat Satisfied', 'Two boxes damaged; claim still open.'], [2, 'tlv', 'Sample Corporate Housing', 'Very Satisfied', ''],
+    [3, 'hhg', 'Sample Van Lines', 'Very Satisfied', ''], [3, 'auto', 'Sample Auto Transport', 'Satisfied', ''],
+    [4, 'hhg', 'Sample Moving & Storage', 'Very Satisfied', ''], [4, 'dest', 'Sample Destination Services', 'Satisfied', 'Helpful with school search.'],
+    [5, 'tlv', 'Sample Corporate Housing', 'Very Dissatisfied', 'Apartment was not ready on arrival.'], [5, 'auto', 'Sample Auto Transport', 'Very Satisfied', ''],
+  ];
+  return A.map(([t, q, supplier, rating, text]) => {
+    const [file, name, client, provider, sent, vip] = TE[t];
+    const [section, secNo, qNo, question, type] = Q[q];
+    return { file, name, client, provider, sent, vip, section, secNo, qNo, question, rating, yn: '', text, supplier, type,
+             contact: '', removeCalc: false, sample: true };
+  });
+}
+
+const REAL = fromView();
+const SAMPLE = sampleRows();
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 const fmtD = iso => iso ? iso.slice(5, 7) + '/' + iso.slice(8, 10) + '/' + iso.slice(2, 4) : '';
 const uniq = list => [...new Set(list)].sort((a, b) => a.localeCompare(b));
-const pct = (n, d) => d ? Math.round(n / d * 100) + '%' : '-';
-const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+const fmtP = v => v == null ? '-' : Math.round(v * 100) + '%';
+const isoDay = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const TODAY = isoDay(new Date());
 
-function fillSelect(el, label, values) {
+const useSample = () => !REAL.length && $('f-sample').checked;
+const source = () => (useSample() ? SAMPLE : REAL);
+
+// The scale column an answer is counted in. Yes / No follow Back Office: Yes = Agree, No = Disagree.
+const bucket = r => r.rating || (/^y/i.test(r.yn) ? 'Satisfied' : /^n/i.test(r.yn) ? 'Dissatisfied' : '');
+function tally(rows) {
+  const c = Object.fromEntries(SCALE.map(l => [l, 0]));
+  let n = 0;
+  for (const r of rows) { if (r.removeCalc) continue; const b = bucket(r); if (b in c) { c[b]++; n++; } }
+  const box = k => n ? TOP[k].reduce((a, l) => a + c[l], 0) / n : null;
+  return { c, n, b1: box(1), b2: box(2), b3: box(3) };
+}
+
+function fillSelect(el, label, values, keep) {
+  const prev = keep ? el.value : ALL;
   el.innerHTML = `<option value="${ALL}">(All ${label})</option>` + values.map(v => `<option>${esc(v)}</option>`).join('');
-  el.value = ALL;
+  el.value = values.includes(prev) ? prev : ALL;
+}
+function refreshSelects(keep) {
+  const rows = source();
+  fillSelect($('f-client'), 'Clients', uniq(rows.map(r => r.client)), keep);
+  fillSelect($('f-provider'), 'Providers', uniq(rows.map(r => r.provider)), keep);
+  fillSelect($('f-type'), 'Supplier Types', uniq(rows.map(r => r.type)), keep);
+  fillSelect($('f-supplier'), 'Suppliers', uniq(rows.map(r => r.supplier)), keep);
 }
 
-function initSelects() {
-  fillSelect($('f-client'), 'Clients', uniq(answers.map(a => a.client)));
-  fillSelect($('f-provider'), 'Providers', uniq(answers.map(a => a.consultant)));
-  fillSelect($('f-type'), 'Supplier Types', uniq(answers.map(a => a.stype)));
-  $('f-type').insertAdjacentHTML('beforeend', NO_SE_QUESTION.map(t => `<option disabled>${esc(t)} (no SE question)</option>`).join(''));
-  refreshSuppliers();
-}
-
-function refreshSuppliers() {
-  const type = $('f-type').value;
-  fillSelect($('f-supplier'), 'Suppliers', uniq(answers.filter(a => type === ALL || a.stype === type).map(a => a.supplier)));
-}
 
 function readState() {
-  return {
-    client: $('f-client').value, provider: $('f-provider').value, type: $('f-type').value, supplier: $('f-supplier').value,
-    format: $('f-format').value, group: $('f-group').value, comments: $('f-comments').checked, start: $('f-start').value, end: $('f-end').value,
-    t1: $('f-t1').checked, t2: $('f-t2').checked, t3: $('f-t3').checked,
-  };
+  return { format: $('f-format').value, comments: $('f-comments').checked, client: $('f-client').value, provider: $('f-provider').value,
+           type: $('f-type').value, supplier: $('f-supplier').value, start: $('f-start').value, end: $('f-end').value };
+}
+function selectRows(st) {
+  return source().filter(r => (st.client === ALL || r.client === st.client) && (st.provider === ALL || r.provider === st.provider)
+    && (st.type === ALL || r.type === st.type) && (st.supplier === ALL || r.supplier === st.supplier)
+    && (!(st.start || st.end) || r.sent) && (!st.start || r.sent >= st.start) && (!st.end || r.sent <= st.end));
 }
 
-function selectAnswers(st) {
-  return answers.filter(a => {
-    if (st.client !== ALL && a.client !== st.client) return false;
-    if (st.provider !== ALL && a.consultant !== st.provider) return false;
-    if (st.type !== ALL && a.stype !== st.type) return false;
-    if (st.supplier !== ALL && a.supplier !== st.supplier) return false;
-    if ((st.start || st.end) && !a.sent) return false;
-    if (st.start && a.sent < st.start) return false;
-    if (st.end && a.sent > st.end) return false;
-    return true;
-  });
-}
+// Group by section name and question text: the same section can sit at a different position on each survey.
+const qKey = r => r.section + '|' + r.question;
+const byQ = (a, b) => a.secNo - b.secNo || a.qNo - b.qNo || a.question.localeCompare(b.question);
+const groupBy = (rows, key) => { const m = new Map(); for (const r of rows) { const k = key(r); if (!m.has(k)) m.set(k, []); m.get(k).push(r); } return m; };
+const nums = t => SCALE.map(l => `<td class="n">${t.c[l]}</td>`).join('') + [t.b1, t.b2, t.b3].map(v => `<td class="n">${fmtP(v)}</td>`).join('');
+const COLS = 1 + SCALE.length + 3;
+const qText = rows => (rows.some(r => r.yn) ? '** ' : '') + rows[0].question;
+const tag = r => (r.sample ? '<span class="sample-tag">SAMPLE</span>' : '');
 
-const emptyTally = () => ({ counts: SCALE.map(() => 0), yes: 0, no: 0 });
-function tally(t, a) {
-  if (a.removeCalc) return;
-  const i = SCALE.indexOf(a.rating);
-  if (i >= 0) t.counts[i]++;
-  if (a.yn === 'Yes') t.yes++;
-  if (a.yn === 'No') t.no++;
-}
-
-// A shared answer sits on each of its suppliers. It counts for each supplier's own score, but only once in any total across suppliers.
-function tallyOnce(list) {
-  const seen = new Set(), t = emptyTally();
-  for (const a of list) {
-    const k = a.survey + '|' + a.qKey;
-    if (!seen.has(k)) { seen.add(k); tally(t, a); }
-  }
-  return t;
-}
-
-// Top Box counts the rating labels, not the points: the points scale has run in both directions.
-const boxes = c => {
-  const n = c.reduce((a, b) => a + b, 0);
-  return { n, p1: pct(c[4], n), p2: pct(c[4] + c[3], n), p3: pct(c[4] + c[3] + c[2], n) };
-};
-
-const byOrder = (a, b) => a.order - b.order;
-const isYesNo = Q => Q.answers.some(a => a.yn && !a.rating);
-const qLabel = Q => (isYesNo(Q) ? '** ' : '') + Q.text;
-
-// supplier -> section -> question, each with its own tally.
-function rollupBySupplier(list) {
-  const suppliers = new Map();
-  for (const a of list) {
-    let S = suppliers.get(a.supplierId);
-    if (!S) { S = { name: a.supplier, types: a.types, sections: new Map(), tally: emptyTally(), surveys: new Set() }; suppliers.set(a.supplierId, S); }
-    let C = S.sections.get(a.section);
-    if (!C) { C = { name: a.section, stype: a.stype, order: a.secNo, questions: new Map(), tally: emptyTally() }; S.sections.set(a.section, C); }
-    let Q = C.questions.get(a.question);
-    if (!Q) { Q = { text: a.question, order: a.qNo, answers: [], tally: emptyTally() }; C.questions.set(a.question, Q); }
-    Q.answers.push(a); S.surveys.add(a.survey);
-    tally(Q.tally, a); tally(C.tally, a); tally(S.tally, a);
-  }
-  return [...suppliers.values()].sort((a, b) => a.name.localeCompare(b.name));
-}
-
-// section -> question -> supplier: the Back Office Summary by Section order.
-function rollupBySection(list) {
-  const sections = new Map();
-  for (const a of list) {
-    let C = sections.get(a.section);
-    if (!C) { C = { name: a.section, stype: a.stype, order: a.secNo, questions: new Map(), answers: [] }; sections.set(a.section, C); }
-    let Q = C.questions.get(a.question);
-    if (!Q) { Q = { text: a.question, order: a.qNo, suppliers: new Map(), answers: [] }; C.questions.set(a.question, Q); }
-    let S = Q.suppliers.get(a.supplierId);
-    if (!S) { S = { name: a.supplier, types: a.types, answers: [], tally: emptyTally() }; Q.suppliers.set(a.supplierId, S); }
-    S.answers.push(a); Q.answers.push(a); C.answers.push(a); tally(S.tally, a);
-  }
-  return [...sections.values()].sort(byOrder);
-}
-
-const metricCols = st => [st.t1 && ['Top<br>Box', 'p1'], st.t2 && ['Top<br>2 Box', 'p2'], st.t3 && ['Top<br>3 Box', 'p3']].filter(Boolean);
-const spanOf = st => 8 + metricCols(st).length;
-const tallyCells = (t, st) => {
-  const b = boxes(t.counts);
-  return [...t.counts, t.yes, t.no, ...metricCols(st).map(c => b[c[1]])].map(v => `<td class="n">${v}</td>`).join('');
-};
-const tallyValues = t => { const b = boxes(t.counts); return [...t.counts, t.yes, t.no, b.p1, b.p2, b.p3]; };
-const totalRow = (cls, label, t, st) => `<tr class="${cls}"><td>${esc(label)}</td>${tallyCells(t, st)}</tr>`;
-
-const CSV_TEXT = ['Level', 'Group', 'Supplier', 'Supplier Type', 'Service Type', 'Question', 'File', 'Name', 'VIP', 'Answer', 'Comment', 'Credited By', 'Suppliers On Question'];
-const CSV_COUNTS = [...SCALE, 'Yes', 'No', 'Top Box', 'Top 2 Box', 'Top 3 Box'];
-const csvRow = (o, t) => [...CSV_TEXT.map(c => o[c] ?? ''), ...(t ? tallyValues(t) : CSV_COUNTS.map(() => ''))];
-
-// One transferee line: VIP marker, file, name, answer. Blank answers are left out and never counted.
-function teRows(Q, st, ctx, out) {
-  let h = '';
-  for (const a of Q.answers) {
-    const ans = a.rating || a.yn;
-    if (!ans && !(st.comments && a.text)) continue;
-    const pills = (a.match === 'Service role' ? ' <span class="pill" title="The question names no supplier, so this supplier was found from its role on the file">Credited by role</span>' : '')
-      + (a.shared > 1 ? ` <span class="pill">Shared by ${a.shared} suppliers</span>` : '')
-      + (a.removeCalc ? ' <span class="pill">Not in calc</span>' : '');
-    h += `<tr class="det${LOW.has(a.rating) ? ' low' : ''}"><td colspan="${spanOf(st)}"><div class="te"><span class="vip">${a.vip ? '(VIP)' : ''}</span><span>${esc(a.file)}</span><span>${esc(a.name)}</span><span class="ansval">${esc(ans)}</span><span>${pills}</span></div></td></tr>`;
-    if (st.comments && a.text) h += `<tr class="cmt"><td colspan="${spanOf(st)}">${esc(a.text)}</td></tr>`;
-    out.push(csvRow({ ...ctx, Level: 'Answer', File: a.file, Name: a.name, VIP: a.vip ? 'VIP' : '', Answer: ans, Comment: st.comments ? a.text : '', 'Credited By': a.match, 'Suppliers On Question': a.shared }));
-  }
+function teRow(r, st) {
+  const ans = r.rating || r.yn || '(comment only)';
+  let h = `<tr class="te"><td colspan="${COLS}"><div class="te-line"><span class="vip">${r.vip ? '(VIP)' : ''}</span><span>${esc(r.file)}</span>
+           <span>${esc(r.name)}${tag(r)}</span><span class="ans${NEGATIVE.includes(r.rating) || /^n/i.test(r.yn) ? ' low' : ''}">${esc(ans)}</span></div></td></tr>`;
+  if (st.comments && r.text) h += `<tr class="cmt"><td colspan="${COLS}">${esc(r.text)}</td></tr>`;
   return h;
 }
 
-// Summary by Supplier with Detail: question label above its transferees, then a "Totals For" row.
-// Summary by Supplier: the same transferees, with the question label under them carrying the counts.
-function renderBySupplier(list, st, group, out) {
+// Summary by Supplier with Detail, and Summary by Supplier: supplier > section > question.
+function renderBySupplier(rows, st, ex, withDetail) {
   let h = '';
-  for (const S of rollupBySupplier(list)) {
-    const types = S.types.join(', ');
-    h += `<tr class="sup"><td colspan="${spanOf(st)}">${esc(S.name)} <span class="supmeta">${esc(types)} · ${plural(S.surveys.size, 'survey')}</span></td></tr>`;
-    for (const C of [...S.sections.values()].sort(byOrder)) {
-      const ctx = { Group: group, Supplier: S.name, 'Supplier Type': C.stype, 'Service Type': C.name };
-      h += `<tr class="sec"><td colspan="${spanOf(st)}">${esc(C.name)}</td></tr>`;
-      for (const Q of [...C.questions.values()].sort(byOrder)) {
-        const qctx = { ...ctx, Question: Q.text };
-        if (st.format === 'detail') {
-          h += `<tr class="qtext"><td colspan="${spanOf(st)}">${esc(qLabel(Q))}</td></tr>` + teRows(Q, st, qctx, out);
-          h += totalRow('tot', `Totals For ${Q.text}`, Q.tally, st);
+  for (const [sup, sRows] of [...groupBy(rows, r => r.supplier)].sort((a, b) => a[0].localeCompare(b[0]))) {
+    h += `<tr class="supname"><td colspan="${COLS}">${esc(sup)}</td></tr>`;
+    for (const [sec, secRows] of [...groupBy(sRows, r => r.section)].sort((a, b) => a[1][0].secNo - b[1][0].secNo)) {
+      h += `<tr class="secname"><td colspan="${COLS}">${esc(sec)}</td></tr>`;
+      for (const [, qRows] of [...groupBy(secRows, qKey)].sort((a, b) => byQ(a[1][0], b[1][0]))) {
+        const t = tally(qRows);
+        if (withDetail) {
+          h += `<tr class="qlabel"><td colspan="${COLS}">${esc(qText(qRows))}</td></tr>` + qRows.map(r => teRow(r, st)).join('');
+          h += `<tr class="qtot"><td>Totals For ${esc(qRows[0].question)}</td>${nums(t)}</tr>`;
         } else {
-          h += teRows(Q, st, qctx, out) + totalRow('qlabel', qLabel(Q), Q.tally, st);
+          h += qRows.map(r => teRow(r, st)).join('') + `<tr class="qlabel sub"><td>${esc(qText(qRows))}</td>${nums(t)}</tr>`;
         }
-        out.push(csvRow({ ...qctx, Level: 'Question total' }, Q.tally));
+        for (const r of qRows) ex.push([sup, r.type, sec, r.question, r.file, r.name, r.vip ? 'VIP' : '', r.rating || r.yn, r.text, r.sample ? 'SAMPLE' : '']);
       }
-      h += totalRow('sectot', `Totals for ${C.name}`, C.tally, st);
-      out.push(csvRow({ ...ctx, Level: 'Section total' }, C.tally));
+      h += `<tr class="sectot"><td>Totals for ${esc(sec)}</td>${nums(tally(secRows))}</tr>`;
     }
-    h += totalRow('suptot', `Totals for ${S.name}`, S.tally, st);
-    out.push(csvRow({ Level: 'Supplier total', Group: group, Supplier: S.name }, S.tally));
+    h += `<tr class="suptot"><td>Totals for ${esc(sup)}</td>${nums(tally(sRows))}</tr>`;
   }
   return h;
 }
 
-// Summary by Section: one count row per supplier under each question.
-function renderBySection(list, st, group, out) {
+// Summary by Section: section > question > one count row per supplier.
+function renderBySection(rows, st, ex) {
   let h = '';
-  for (const C of rollupBySection(list)) {
-    const ctx = { Group: group, 'Supplier Type': C.stype, 'Service Type': C.name };
-    h += `<tr class="sec"><td colspan="${spanOf(st)}">${esc(C.name)}</td></tr>`;
-    for (const Q of [...C.questions.values()].sort(byOrder)) {
-      h += `<tr class="qtext"><td colspan="${spanOf(st)}">${esc(qLabel(Q))}</td></tr>`;
-      for (const S of [...Q.suppliers.values()].sort((a, b) => a.name.localeCompare(b.name))) {
-        h += totalRow('q', S.name, S.tally, st);
-        out.push(csvRow({ ...ctx, Level: 'Supplier on question', Supplier: S.name, Question: Q.text }, S.tally));
-        if (st.comments) for (const a of S.answers) if (a.text) h += `<tr class="cmt"><td colspan="${spanOf(st)}">${esc(a.file)}: ${esc(a.text)}</td></tr>`;
+  for (const [sec, secRows] of [...groupBy(rows, r => r.section)].sort((a, b) => a[1][0].secNo - b[1][0].secNo)) {
+    h += `<tr class="secname"><td colspan="${COLS}">${esc(sec)}</td></tr>`;
+    for (const [, qRows] of [...groupBy(secRows, qKey)].sort((a, b) => byQ(a[1][0], b[1][0]))) {
+      h += `<tr class="cat"><td colspan="${COLS}">${esc(qText(qRows))}</td></tr>`;
+      for (const [sup, supRows] of [...groupBy(qRows, r => r.supplier)].sort((a, b) => a[0].localeCompare(b[0]))) {
+        const t = tally(supRows);
+        h += `<tr class="srow"><td>${esc(sup)}${supRows.every(r => r.sample) ? tag(supRows[0]) : ''}</td>${nums(t)}</tr>`;
+        ex.push([sec, qRows[0].question, sup, ...SCALE.map(l => t.c[l]), fmtP(t.b1), fmtP(t.b2), fmtP(t.b3)]);
       }
     }
-    const t = tallyOnce(C.answers);
-    h += totalRow('sectot', `Totals for ${C.name}`, t, st);
-    out.push(csvRow({ ...ctx, Level: 'Section total' }, t));
+    h += `<tr class="sectot"><td>Totals for ${esc(sec)}</td>${nums(tally(secRows))}</tr>`;
   }
   return h;
 }
 
-// One line per supplier, like the Client Summary on the Workload report.
-function renderScorecard(list, st, group, out) {
-  let h = '';
-  for (const S of rollupBySupplier(list)) {
-    const b = boxes(S.tally.counts);
-    h += `<tr><td>${esc(S.name)}</td><td>${esc(S.types.join(', '))}</td><td class="n">${S.surveys.size}</td><td class="n">${b.n}</td><td class="n">${S.tally.yes}</td><td class="n">${S.tally.no}</td>${metricCols(st).map(c => `<td class="n">${b[c[1]]}</td>`).join('')}</tr>`;
-    out.push([group, S.name, S.types.join(', '), S.surveys.size, b.n, S.tally.yes, S.tally.no, b.p1, b.p2, b.p3]);
-  }
-  return h;
-}
-
-function scorecardTotal(list, st, label, cls, group, out) {
-  const t = tallyOnce(list), b = boxes(t.counts), surveys = new Set(list.map(a => a.survey)).size;
-  out.push([group, label, '', surveys, b.n, t.yes, t.no, b.p1, b.p2, b.p3]);
-  return `<tr class="${cls}"><td colspan="2">${esc(label)}</td><td class="n">${surveys}</td><td class="n">${b.n}</td><td class="n">${t.yes}</td><td class="n">${t.no}</td>${metricCols(st).map(c => `<td class="n">${b[c[1]]}</td>`).join('')}</tr>`;
-}
-
-function renderComments(list, group, out) {
-  let h = '';
-  for (const S of rollupBySupplier(list)) {
-    const sections = [...S.sections.values()].sort(byOrder).filter(C => [...C.questions.values()].some(Q => Q.answers.some(a => a.text)));
-    if (!sections.length) continue;
-    h += `<h3 class="group">${esc(S.name)}</h3>`;
-    for (const C of sections) {
-      h += `<div class="band">${esc(C.name)}</div>`;
-      for (const Q of [...C.questions.values()].filter(Q => Q.answers.some(a => a.text)).sort(byOrder)) {
-        h += `<div class="qbold">${esc(Q.text)}</div>`;
-        for (const a of Q.answers.filter(x => x.text)) {
-          h += `<div class="verbatim">${a.vip ? '(VIP) ' : ''}<b>${esc(a.file)}</b> ${esc(a.name)}: ${esc(a.text)}</div>`;
-          out.push([group, S.name, C.stype, C.name, Q.text, a.file, a.name, a.vip ? 'VIP' : '', a.rating || a.yn, a.text]);
-        }
-      }
-    }
-  }
-  return h;
-}
-
-const GROUPS = {
-  supplier: null,
-  provider: ['Service Provider', a => a.consultant],
-  client: ['Client', a => a.client],
-  type: ['Supplier Type', a => a.stype],
-};
-
-// The optional outer grouping. Grouped by Supplier is the plain report: one block, no outer heading.
-function groupsOf(list, st) {
-  const g = GROUPS[st.group];
-  if (!g) return [{ name: '', list }];
-  return uniq(list.map(g[1])).map(name => ({ name, list: list.filter(a => g[1](a) === name) }));
-}
-
-const FORMATS = {
-  detail: ['Supplier Survey Detail Results', 'Detail'],
-  summary: ['Supplier Survey Detail Results', 'Summary_by_Supplier'],
-  section: ['Supplier Survey Results', 'Summary_by_Section'],
-  scorecard: ['Supplier Scorecard', 'Scorecard'],
-  comments: ['Supplier Survey Comments', 'Comments'],
-};
-const COUNT_HEADER = [...CSV_TEXT, ...CSV_COUNTS];
+const TITLES = { detail: 'Supplier Survey Detail Results', supplier: 'Supplier Survey Detail Results', section: 'Supplier Survey Results' };
 const HEADERS = {
-  detail: COUNT_HEADER, summary: COUNT_HEADER, section: COUNT_HEADER,
-  scorecard: ['Group', 'Supplier', 'Supplier Type', '# Surveys', 'Rated Responses', 'Yes', 'No', 'Top Box', 'Top 2 Box', 'Top 3 Box'],
-  comments: ['Group', 'Supplier', 'Supplier Type', 'Service Type', 'Question', 'File', 'Name', 'VIP', 'Answer', 'Comment'],
+  detail: ['Supplier', 'Supplier Type', 'Section', 'Question', 'File #', 'Transferee', 'VIP', 'Answer', 'Comment', 'Sample'],
+  supplier: ['Supplier', 'Supplier Type', 'Section', 'Question', 'File #', 'Transferee', 'VIP', 'Answer', 'Comment', 'Sample'],
+  section: ['Section', 'Question', 'Supplier', ...SCALE, 'Top Box', 'Top 2 Box', 'Top 3 Box'],
 };
-
-function reportBody(list, st, out) {
-  const groups = groupsOf(list, st);
-  const groupLabel = GROUPS[st.group] ? GROUPS[st.group][0] : '';
-  const cols = metricCols(st);
-
-  if (st.format === 'comments') {
-    let h = '';
-    for (const G of groups) {
-      const part = renderComments(G.list, G.name, out);
-      if (part) h += (G.name ? `<h3 class="outer">${esc(groupLabel)}: ${esc(G.name)}</h3>` : '') + part;
-    }
-    return h || `<div class="empty">No comments for these selections.</div>`;
-  }
-
-  if (st.format === 'scorecard') {
-    let h = `<div class="tablewrap"><table><thead><tr><th>Supplier</th><th>Supplier Type</th><th class="n"># Surveys</th><th class="n">Rated Responses</th><th class="n">Yes</th><th class="n">No</th>${cols.map(c => `<th class="n">${c[0]}</th>`).join('')}</tr></thead><tbody>`;
-    for (const G of groups) {
-      if (G.name) h += `<tr class="grp"><td colspan="${6 + cols.length}">${esc(groupLabel)}: ${esc(G.name)}</td></tr>`;
-      h += renderScorecard(G.list, st, G.name, out);
-      if (G.name) h += scorecardTotal(G.list, st, `Totals for ${G.name}`, 'suptot', G.name, out);
-    }
-    return h + scorecardTotal(list, st, 'Total Over all Response', 'grand', '', out) + '</tbody></table></div>';
-  }
-
-  const label = SCALE.map(s => s.replace(' ', '<br>'));
-  let h = `<div class="tablewrap"><table><thead><tr><th></th>${label.map(l => `<th class="n">${l}</th>`).join('')}<th class="n">Yes</th><th class="n">No</th>${cols.map(c => `<th class="n">${c[0]}</th>`).join('')}</tr></thead><tbody>`;
-  for (const G of groups) {
-    if (G.name) h += `<tr class="grp"><td colspan="${spanOf(st)}">${esc(groupLabel)}: ${esc(G.name)}</td></tr>`;
-    h += st.format === 'section' ? renderBySection(G.list, st, G.name, out) : renderBySupplier(G.list, st, G.name, out);
-    if (G.name) {
-      const t = tallyOnce(G.list);
-      h += totalRow('suptot', `Totals for ${G.name}`, t, st);
-      out.push(csvRow({ Level: 'Group total', Group: G.name }, t));
-    }
-  }
-  const overall = tallyOnce(list);
-  h += totalRow('grand', 'Total Over all Response', overall, st) + '</tbody></table></div>';
-  out.push(csvRow({ Level: 'Total Over all Response' }, overall));
-  return h;
-}
-
-let lastExport = { format: 'detail', rows: [] };
+let lastExport = { name: '', header: [], rows: [] };
 
 function render() {
   const st = readState();
-  const list = selectAnswers(st);
-  const suppliers = new Set(list.map(a => a.supplierId)).size;
+  $('w-comments').hidden = st.format === 'section';
+  $('w-sample').hidden = REAL.length > 0;
+  const rows = selectRows(st);
+  const ex = [];
+  let body;
+  if (!rows.length) body = `<div class="empty">${REAL.length || useSample() ? 'No supplier answers match these selections.' : 'Service Engine has no supplier answers yet. Tick "Show sample rows" to see the layout.'}</div>`;
+  else {
+    const inner = st.format === 'section' ? renderBySection(rows, st, ex) : renderBySupplier(rows, st, ex, st.format === 'detail');
+    const hasYN = rows.some(r => r.yn);
+    body = `<div class="tablewrap"><table class="sup"><thead><tr><th></th>${SCALE.map(l => `<th class="n">${l.replace(' ', '<br>')}</th>`).join('')}
+            <th class="n">Top<br>Box</th><th class="n">Top 2<br>Box</th><th class="n">Top 3<br>Box</th></tr></thead><tbody>${inner}
+            <tr class="grand"><td>Total Over all Response</td>${nums(tally(rows))}</tr></tbody></table></div>`
+         + (hasYN ? `<p class="small">**Question with a Yes or No response: Yes is counted under Satisfied and No under Dissatisfied.</p>` : '');
+  }
 
-  const b = boxes(tallyOnce(list).counts);
-  $('kpis').innerHTML = [[suppliers, 'Suppliers'], [new Set(list.map(a => a.survey)).size, 'Surveys'], [b.n, 'Rated responses'], [b.p1, 'Top Box'], [b.p2, 'Top 2 Box']]
-    .map(([v, l]) => `<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('');
+  const all = tally(rows);
+  $('kpis').innerHTML = [[new Set(rows.map(r => r.file + '|' + r.sent)).size, 'Surveys with supplier answers'], [new Set(rows.map(r => r.supplier)).size, 'Suppliers'],
+    [all.n, 'Rated answers'], [fmtP(all.b2), 'Top 2 Box']].map(([v, l]) => `<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('');
 
-  $('w-comments').hidden = st.format === 'scorecard' || st.format === 'comments';
-  $('w-metrics').hidden = st.format === 'comments';
+  const totalAnswers = DATA.table.length;
+  $('notice').innerHTML = REAL.length
+    ? `<span><b>${REAL.length} supplier answer${REAL.length === 1 ? '' : 's'}</b> in FactTransfereeSurvey.</span>`
+    : `<span><b>No supplier answers in SE yet.</b> All ${totalAnswers} answers in udv_transferee_survey_view_34 are in the NuCompass sections. ${useSample() ? 'The rows below are SAMPLE data to show the layout: made-up transferees and suppliers on SE\'s real supplier questions.' : ''}</span>`;
 
-  const notice = $('notice');
-  const samples = answers.filter(a => /^SAMPLE-/.test(a.file)).length;
-  notice.hidden = !!answers.length && !samples;
-  if (samples) notice.innerHTML = `<span><b>Sample data.</b> ${samples === answers.length ? 'All' : samples} rows in this report are made up to show the layout. They are not real survey answers, and the suppliers are not real. FactSupplierSurvey holds the same sample rows and no real ones, because Service Engine has no surveys with supplier questions yet.</span>`;
-  else if (!answers.length) notice.innerHTML = `<span><b>FactSupplierSurvey has no rows yet</b>${DATA.builtAt ? `, built ${esc(DATA.builtAt)}` : ''}. Service Engine has no surveys with supplier questions, so there is nothing to report. The report fills in once they are loaded.</span>`;
-
+  const pick = (v, all) => (v === ALL ? all : esc(v));
   const dateLine = st.start || st.end ? `Surveys Sent between ${st.start ? fmtD(st.start) : 'the first survey'} and ${st.end ? fmtD(st.end) : 'today'}` : 'All Survey Dates';
-  const now = new Date();
-  const printed = `${now.getMonth() + 1}/${now.getDate()}/${String(now.getFullYear()).slice(2)} ${now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
-  const typeLine = st.type === ALL ? '' : `Supplier Type: ${esc(st.type)}<br>`;
-  const byLine = GROUPS[st.group] ? `Grouped by ${GROUPS[st.group][0]}<br>` : '';
-  let body = `<div class="rhead"><div class="rtop"><span>${printed}</span><h2>${FORMATS[st.format][0]}</h2><span></span></div>
-    <p class="org">NuCompass Mobility Services Inc.</p>
-    <p class="scope">${dateLine}<br>${st.client === ALL ? 'All Clients' : 'For: Company ' + esc(st.client)}<br>${st.provider === ALL ? 'All Service Providers' : esc(st.provider)}<br>${typeLine}${byLine}
+  const head = `<div class="rhead"><p class="org">NuCompass Mobility Services Inc.</p><h2>${TITLES[st.format]}</h2>
+    <p class="scope">${dateLine}<br>${st.client === ALL ? 'All Clients' : 'For: ' + esc(st.client)} · ${pick(st.provider, 'All Service Providers')} · ${pick(st.type, 'All Supplier Types')}<br>
     Results for Service Supplier: ${st.supplier === ALL ? '(All Suppliers)' : esc(st.supplier)}</p></div>`;
-
-  const exportRows = [];
-  if (!list.length) body += `<div class="empty">${answers.length ? 'No supplier answers match these selections. Widen the date range or set a filter back to All.' : 'No supplier survey answers to show yet.'}</div>`;
-  else body += reportBody(list, st, exportRows);
-
-  body += `<div class="foot"><span>**Question with a Yes or No response. Yes and No have their own columns here and are not in the Top Box figures. In Back Office, Yes was noted in the "Agree" column and No in the "Disagree" column.</span>
-    <span>Source: WarehouseDB.dbo.FactSupplierSurvey${DATA.builtAt ? ` (built ${esc(DATA.builtAt)})` : ''}. Top Box, Top 2 Box and Top 3 Box count rating labels; points are not used. Unanswered questions are left out and not counted.</span>
-    <span>An answer goes to the supplier named on the question, or else to the supplier in the matching role on the file ("Credited by role"). When a file has more than one, each supplier's own rows count the answer, and it is marked as shared. Totals across suppliers count it once, so they can be lower than the rows above them.</span>
-    <span>Comments are the text on the supplier question. Comments in the survey's "Other Comments or Feed Bak" section name no supplier and are not shown here.</span></div>`;
-
-  $('page').innerHTML = body;
-  lastExport = { format: st.format, rows: exportRows };
+  const foot = `<div class="foot"><span>Source: WarehouseDB.dbo.FactTransfereeSurvey (udv_transferee_survey_view_34, built ${esc(DATA.builtAt)}). Printed ${fmtD(TODAY)}.</span>
+    <span>Supplier = Question Contact Company; Supplier Type = survey section. Boxes count rating labels, not points.</span></div>`;
+  $('page').innerHTML = head + body + foot;
+  lastExport = { name: TITLES[st.format].replace(/ /g, '_') + (st.format === 'supplier' ? '_by_Supplier' : ''), header: HEADERS[st.format], rows: ex };
 }
 
 function exportCsv() {
-  const header = HEADERS[lastExport.format];
   const q = v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-  const csv = '﻿' + [header, ...lastExport.rows].map(r => r.map(q).join(',')).join('\r\n');
+  const csv = '﻿' + [lastExport.header, ...lastExport.rows].map(r => r.map(q).join(',')).join('\r\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-  a.download = `Survey_by_Supplier_${FORMATS[lastExport.format][1]}.csv`;
+  a.download = lastExport.name + '.csv';
   document.body.appendChild(a); a.click(); a.remove();
 }
 
-initSelects();
-$('selections').addEventListener('change', e => { if (e.target.id === 'f-type') refreshSuppliers(); render(); });
+refreshSelects(false);
+$('f-sample').addEventListener('change', () => refreshSelects(true));
+$('selections').addEventListener('change', render);
 $('selections').addEventListener('submit', e => e.preventDefault());
 $('b-export').addEventListener('click', exportCsv);
-$('b-print').addEventListener('click', () => window.print());
-$('b-reset').addEventListener('click', () => { $('selections').reset(); initSelects(); render(); });
+$('b-reset').addEventListener('click', () => { $('selections').reset(); refreshSelects(false); render(); });
 render();
 </script>
 </body>

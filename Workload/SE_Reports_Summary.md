@@ -1,19 +1,19 @@
 # SE Reports Summary
 
-Checked on 2026-11-05 against the live `WarehouseDB.dbo` tables.
+Survey reports checked against the live `WarehouseDB.dbo.FactTransfereeSurvey` and SE's `udv_transferee_survey_view_34` on 2026-11-18. Both survey pages were re-checked against this summary on 2026-11-19; the data is unchanged since the 2026-11-18 16:12 build. The Workload column was checked on 2026-11-05 and has not been re-checked.
 
 | | Workload report | Transferee Survey report | Survey by Supplier report |
 |---|---|---|---|
 | **File** | [Workload_Report_SE.html](Workload_Report_SE.html) | [Transferee_Survey_Report_SE.html](Transferee_Survey_Report_SE.html) | [Supplier_Survey_Report_SE.html](Supplier_Survey_Report_SE.html) |
-| **Gold table** | `FactWorkload` | `FactTransfereeSurvey` | `FactSupplierSurvey` |
-| **Only from that table?** | **Yes** | **No:** it also has a test dataset, and that's what it opens on | **Yes**, but all of the table's rows are made-up samples |
-| **Rows in the page** | 3,313 | 8 from the table, 41 test | 9, all sample |
-| **Match to the live table** | All rows match | The 8 table rows match; 0 of the 41 test rows do | All 9 rows match on the 10 columns compared |
-| **Columns used** | 24 of 50 | 31 of 53 | 20 of 28 |
-| **Built** | 2026-11-04 13:44 | 2026-11-04 16:43 | Table data 2026-11-05 11:09; page remade 2026-11-05 16:34 |
-| **Ready for real use?** | The data is, but the page's calculation rules need confirming | No, the table has no answered surveys yet | No, the table has no real supplier answers yet |
+| **Gold table** | `FactWorkload` | `FactTransfereeSurvey` | `FactTransfereeSurvey` (the same table; `FactSupplierSurvey` is no longer used) |
+| **SE view** | `udv_workload_view_34` | `udv_transferee_survey_view_34` | `udv_transferee_survey_view_34` |
+| **Rows in the page** | 3,313 | 32 (3 test surveys) | The same 32; 5 are supplier answers |
+| **Match to the view** | All rows match | Same 57 columns in the same order, same 32 rows. Auth Date / Benefit Expires (typed as dates) and the Service list order differ by design | As TE |
+| **Columns used** | 24 of 50 | 24 of 57 | 16 of 57 |
+| **Built** | 2026-11-04 13:44 | Fact rebuilt 2026-11-18 16:12 | Fact rebuilt 2026-11-18 16:12 |
+| **Ready for real use?** | The data is, but the page's calculation rules need confirming | Layout yes; data is test only | Layout yes; data is test only |
 
-All three pages are snapshots, so none updates when its table is rebuilt.
+All three pages are snapshots. `refresh_transferee_report.py` updates both survey pages from `FactTransfereeSurvey` in one run.
 
 ## Workload report
 
@@ -29,44 +29,63 @@ All three pages are snapshots, so none updates when its table is rebuilt.
 
 ## Transferee Survey report
 
-- **Contents from the table:** 3 test surveys (files 278-0029, 278-0031, 278-0034) with 27 question rows, all answered. The page reads only this table. They are test data, not real results: 24 rows come from `TE_SurveyResults.xlsx`, Leclerc's 278-0031 answers come from the SE_DEV extract, and the policy comment on 278-0031 and the Yes/No question on all three files are hand-made.
-- **Refreshing the page:** it is a static file, so run `refresh_transferee_report.py` after each rebuild of `FactTransfereeSurvey`. The survey rows are loaded by the three `te_survey_*_2026-11-06.sql` scripts in `dbt/sql`, which need re-running if a reload from SE wipes them.
-- **Formats:** Overall Rollup, Detailed Survey Report, TE Detail Comments and Surveys Requiring Action.
-- **Data differences:** three flag columns hold a single space in the table and are empty in the HTML, with no effect on results.
+- **Contents:** 3 test surveys (278-0029, 278-0031, 278-0034), 32 question rows, all returned. 5 of the rows are the supplier answers added on 2026-11-18.
+- **View update, 2026-11-18 (ticket 40217):** SE added Survey Last Sent Date, Number of Surveys Sent and Question Contact Company. They are now in `int_se_fact_TransfereeSurvey`, `FactTransfereeSurvey` and the page.
+- **Formats:** the four Back Office formats plus two asked for by Lorrie and Bert:
+  - Overall Rollup: counts per rating, Top / Top 2 / Top 3 Box, total row, return rate as Back Office defines it (TEs who answered ÷ TEs sent). Group by client, policy or service provider.
+  - Consultant Scorecard (WOW / ACE): Bert's Survey Metrics. WOW is company-wide, judged per quarter or year from the dates entered, and ignores the Service provider filter. ACE is per service provider, per year.
+  - Survey Status: sent, times sent, last sent, completed, days outstanding; show all, outstanding only or returned only.
+  - Surveys Requiring Action: surveys with a negative answer, % negative, and whether they have been reviewed.
+  - Detailed Survey Report and TE Detail Comments Report, both showing the Counselor Response under an answer when there is one (one test survey, 278-0034, has one).
+- **Filters:** Corporate client, Service provider, Division, Policy, Date range (Survey Sent Date), Move type on every format. Some controls appear only with certain formats:
+  - Transferee: Detailed, Comments and Survey Status.
+  - Show metric box: Rollup and Scorecard.
+  - Group by: Rollup.
+  - Survey status: Survey Status.
+
+  Department is shown but locked to (All Profit Centers), because SE has no profit center. Service, Section and Quick range were removed: Back Office had none of them and they did not change the results.
+- **WOW / ACE targets in the page:**
+  - WOW Tier 1: Overall, Responsiveness and Knowledgeable each need Top 2 Box of 90% or more and Top 3 Box of 96% or more; Expense Processing needs Top 2 Box of 95% or more.
+  - WOW Tier 2: return rate of 45% or more.
+  - ACE (Service Teams): Overall, Responsiveness and Knowledgeable each need Top Box of 60% or more, plus a return rate of 45% or more and at least 24 surveys returned.
+  - ACE (REM): Expense Processing Top Box of 70% or more. The W-2 and Realty measures don't come from surveys, so the page doesn't show them.
+- **Rating scale:** 5 points, Very Dissatisfied to Very Satisfied. Boxes count the rating label, because SE stores the points the other way round (Very Satisfied = 1).
+- **Remove From Report / Remove From Calc:** not used. Every answer shows and counts. These flags apply only to the Survey by Supplier report.
+- **Test data:** loaded by `te_survey_load_2026-11-06.sql`, `te_survey_answers_278-0031_2026-11-06.sql`, `te_survey_yesno_sample_2026-11-06.sql` and `supplier_survey_load_2026-11-18.sql` in `dbt/sql`, in that order. Re-run them if a reload from SE wipes the rows.
 - **Rules to confirm:**
-  - A survey is identified by file + sent date, because the table has no survey ID.
-  - Top Box scores count rating labels, not points.
-  - The Surveys Requiring Action rule is still marked as proposed, for Ops to confirm.
+  - A survey is identified by file + sent date, because the view has no survey ID.
+  - The question-to-category mapping for WOW / ACE (Overall, Knowledgeable, Responsiveness, Expense Processing).
+  - Whether WOW Tier 1 is met per category or on the three categories combined.
+  - Negative answer = Dissatisfied, Very Dissatisfied, or No.
 
 ## Survey by Supplier report
 
-- **Purpose:** supplier performance management and scorecard reviews. Supplier Mgt uses Summary by Supplier with Detail, with comments always shown.
-- **Contents:** 9 sample rows covering 5 surveys, 4 suppliers and 7 distinct rated answers. A notice on the page says they aren't real. Service Engine has no surveys with supplier sections yet, so the table has no real rows.
-- **Formats:** Summary by Supplier with Detail (the default), Summary by Supplier and Summary by Section, as in Back Office. Supplier Scorecard and Supplier Comments are extras.
-- **Selections:** client, service provider, supplier type, one or all suppliers, and date range. It can also group by service provider, client or supplier type. Profit Center is left out, as the business decided.
+- **Purpose:** supplier performance management and scorecard reviews. Supplier Mgt uses Summary by Supplier with Detail, with comments always shown, and must be able to run one supplier.
+- **Source:** the same `FactTransfereeSurvey` as the TE report. `FactSupplierSurvey` and its inferred-supplier logic are no longer used; the table is left in the warehouse untouched.
+- **How a supplier answer is found:**
+  - Supplier question = any question outside the NuCompass sections (NuCompass Mobility Inc., NuCompass Consultant, Expense Management, CoPilot, Other Comments).
+  - Supplier = Question Contact Company. Supplier Type = the survey section (Household Goods, Auto Shipment, Temporary Living...).
+- **Contents:** 5 test answers from `supplier_survey_load_2026-11-18.sql`, using SE's real supplier questions and contacts: ABC Van Line, Move Caddy, Arlington Auto Shippers, zReloQuest.
+- **Formats:** Summary by Supplier with Detail (default), Summary by Supplier, Summary by Section, laid out as in the Back Office samples, with Totals For each question, section and supplier, and Total Over all Response.
+- **Filters:** Corporate client, Service provider, Supplier type, Supplier, Show comments (hidden on Summary by Section), Date range. Profit Center is left out.
 - **How answers are counted:**
-  - The survey tables have no supplier column, so each answer goes to the supplier on the question, or else to the supplier in the matching role on the file. Role matches are tagged "Credited by role".
-  - A shared answer counts for each supplier's own score, but only once in totals across suppliers.
-  - `Remove From Report` rows are hidden. `Remove From Calc` rows are shown but not counted.
-- **Not in the page yet:**
-  - The VIP marker: the page is ready, but `FactSupplierSurvey` needs the VIP columns.
-  - General survey comments: "Other Comments or Feed Bak" names no supplier, so these can't be credited.
-  - Email as attachment, which a static page can't do. The Excel output is a CSV file.
+  - Same 5-point scale and box rules as the TE report.
+  - Yes counts under Satisfied and No under Dissatisfied, as Back Office put Yes under Agree and No under Disagree.
+  - `Remove From Report` answers are hidden. `Remove From Calc` answers are shown but not counted. `Display Response` is not used.
+  - "(VIP)" shows when Client VIP or NCM VIP is Yes.
+- **Sample rows:** if the view has no supplier answers, the page offers clearly marked SAMPLE rows to show the layout. They switch off once real supplier answers exist.
 - **Rules to confirm:**
-  - The six section-to-role mappings in `int_se_fact_SupplierSurvey` are hard-coded and marked "To confirm with Supplier Mgt".
-  - The five-point Satisfied scale replaces Back Office's six-point Agree scale, so Top Box, Top 2 Box and Top 3 Box need agreed meanings.
-  - Yes and No answers have their own columns. Back Office counts them under Agree and Disagree, so scores won't match it exactly.
+  - SE's template gives the Temporary Living question the contact role File Manager instead of the housing provider.
+  - What Display Response means, and whether comments should show only flagged ones.
   - The date filter uses Survey Sent Date, while Back Office filters on Surveys Created.
-  - Mortgage, HFP Agent, Home Sale Agent, Rental Assistance and Property Management have no SE question, so their scores would stop.
 
 ## What to do next
 
-1. **Replace the test surveys:** when real surveys are loaded, undo the three `te_survey_*_2026-11-06.sql` scripts (each has undo statements) so test answers can't be mistaken for real ones.
-2. **Rebuild `FactSupplierSurvey` when ready:** it doesn't have the new survey answers yet, and the rebuild clears its sample rows.
-3. **Confirm the rules:** take the three lists above to Ops, Supplier Mgt or the report owners.
-4. **Test the supplier logic on real data:** once surveys with supplier sections exist, rebuild `FactSupplierSurvey` and regenerate the page. The rebuild also clears the sample rows.
-5. **Add the VIP columns:** carry `client_vip` and `ncm_vip` into `FactSupplierSurvey` at that rebuild.
-6. **Work through the open points:** the list below shows who needs to answer each one.
+1. **Replace the test surveys:** when real surveys are loaded, undo the four test scripts in `dbt/sql` (each has undo statements) so test answers can't be mistaken for real ones.
+2. **Confirm the rules:** take the "Rules to confirm" lists above to Bert, Lorrie and Supplier Mgt.
+3. **Fix the Temporary Living contact role** in SE's survey template.
+4. **Retire `FactSupplierSurvey`** once the business accepts the view-based supplier report.
+5. **Work through the open points:** the list below shows who needs to answer each one.
 
 ## Open points
 
@@ -95,41 +114,27 @@ These come from the Observations section of each report's All Points file and fr
 
 | Point | Why it's open | Who answers |
 |---|---|---|
-| Points direction | The spec gives Very Satisfied 5 points, but the test surveys and current template give it 1. Anything built on points could read backwards | Business |
-| Odd question weights | "Consultant's responsiveness" is 1 2 2 4 5 and "local service provider" is 1 3 3 4 5, which look like typing errors | SE admin |
-| Return Rate | It needs surveys sent, including those never returned. The page uses the surveys in the data, so confirm unanswered surveys are kept, and how 2nd and final requests count | Business, data engineer |
-| Transferee Permission filter | Back Office has it, but SE has no such question. The page shows it as not available, so the business needs to decide whether to drop it | Business |
-| WOW Factor and Ace Award | Bert uses this report to calculate them, but no file gives the formula, and the scores may not carry across | Bert |
-| Comparing with Back Office | The six-point Agree scale and longer survey became a five-point scale with fewer questions, so "compare manually" can't match question for question | Business |
-| Surveys Requiring Action | There's no sample or definition, and it's unclear whether it's in Phase 1 | Ops |
-| Comments format | The DE note says "No comment option", but Back Office and both report lists expect comments. The page has them, so the note needs correcting | Report owner |
-| View version | The view text we hold is older than the dbt model (ticket 39063), so the port couldn't be checked. Get the current view from SE | SE team |
-| Older forms | The model matches on exact question text, and older forms use different wording. That would leave Service blank. The live table has 0 blanks in 27 rows, which is too few to show this | Data engineer |
-| "Action at least Started" rule | The dbt model needs `act_dateactive`, which may be the same rule | Data engineer |
-| `Survey Complete Date` | It uses the admin date, so a survey completed but not administered shows no date | Business, data engineer |
-| Test coverage | The data is too small to test the rollup: 3 test surveys in the table, all answered, so Return Rate shows 100% and unanswered surveys aren't exercised | Data engineer |
-| Yes/No answers | Answers sit in `Rating`, `Text Response` or `Yes or No Response`, depending on question type. `TE_SurveyResults.xlsx` has no Yes/No questions, and the only real `YESNO` question in the template is inactive. A hand-made sample question (S1 Q2, weights 0) now fills `Yes or No Response`, which is `varchar(3)`, but Yes/No points are still untested. Ask SE for a sample with an active Yes/No question and replace the hand-made one | SE team |
-| Test workbook errors | Screenshots and ratings for Russell, Hamilton and Leclerc disagree, so check it before using it to reconcile | Report owner |
-| Trackers and report lists | Row 50 of `Test/Tracker.xlsx` is out of date. One tracker row may cover two reports. The report path differs between sheets. `Report Variants` points to the wrong sample. "KM to confirm which format Anna uses" is unanswered | Report owner |
-| Spec and data definitions | The spec names a different view, and its description looks copied from another spec. The data definitions cite `ResponseText`, but the schema has `ResponseComments` | Data engineer |
+| WOW Tier 1 reading | Bert's sheet merges Overall, Responsiveness and Knowledgeable into one cell. The page checks each one | Bert |
+| Category mapping | SE's questions are mapped to WOW / ACE categories by their wording | Bert |
+| Negative answer | Surveys Requiring Action counts Dissatisfied, Very Dissatisfied and No | Bert, Karen |
+| Transferee Permission filter | Back Office has it, but SE has no such answer, so it can't be built | Business |
+| Contact Preference column | Back Office's Requiring Action report shows it; SE has no such answer | Business |
+| Resend rules | Number of Surveys Sent is now in the data, but how many resends are allowed and when is not defined | Business |
+| Comparing with Back Office | The six-point Agree scale and longer survey became a five-point scale with fewer questions, so scores can't be compared question for question | Business |
+| `Survey Complete Date` | It uses the admin date, so a survey completed but not administered shows no date. It is blank on all 3 test surveys | Business, data engineer |
+| Odd question weights | "Consultant's responsiveness" is 1 2 2 4 5 and "local service provider" is 1 3 3 4 5, which look like typing errors. The page doesn't use points | SE admin |
+| Test coverage | 3 test surveys, all returned, so Return Rate shows 100% and outstanding surveys aren't exercised | Data engineer |
 
 ### Survey by Supplier report
 
 | Point | Why it's open | Who answers |
 |---|---|---|
-| No approved spec | The Service Information spec says "no requirements for Supplier Surveys", so the fact's design isn't signed off. The supplier link is our own logic | Supplier Mgt |
-| Wrong supplier credit | Back Office stored the vendor on each response. SE infers it from the question contact or from any service on the program, so a supplier that wasn't rated could get the score | Supplier Mgt |
-| Answers with no supplier | The joins are inner, so these answers are dropped without warning. Compare counts with `FactTransfereeSurvey` once real data exists | Data engineer |
-| Fewer questions | SE has one rating question per supplier section, where Back Office has several plus "would recommend". The "compare manually" plan can't match question for question | Supplier Mgt |
-| How comments should appear | No sample shows a comment, so the layout is a guess. The business also needs to say what to do with general comments that name no supplier | Supplier Mgt |
-| Missing fact fields | Besides VIP, the fact has no Service Type (`BO Data Fields!B55`) or response date. The page uses the survey section as Service Type | Data engineer |
-| Number of reports | The report list shows four lines but counts 1. Confirm the "grouped by" versions are just options on one report | Supplier Mgt |
-| "Service Provider" meaning | In the dialog it's the NuCompass consultant, which is what the page uses. `BO Data Fields` maps it to "Supplier Authoorized?" | Supplier Mgt |
-| Destination Services weights | They're 1 3 3 4 5, which looks like a typing error and changes Rating Points. The page doesn't use points | SE admin |
-| Back Office damage question | "Did you have damage..." counts No under Disagree, which lowers scores for a good outcome. ABBE's Top 2 Box would be about 97% instead of 89% without it, so allow for this when comparing | Supplier Mgt |
-| Back Office section totals | Summary by Section totals restart when a heading repeats, so don't reconcile to them. Total Over all Response is correct | Report owner |
-| Back Office format totals | By section has 283 counted responses and By supplier has 279 for the same dates and filters. The reason isn't known | Report owner |
-| Trackers and docs | `Test/Tracker.xlsx` row 49 says "No fact yet" and "Not Started". The report is ID 47, 40 and 52 in three trackers. The owner is blank or TBC, though `Contents!D14` says Anna. Section 11 of the All Points file still says there's no sample page. The model comment on service codes overstates the case | Report owner |
+| Temporary Living contact role | SE's template sets File Manager. The page uses the section as Supplier Type, but the contact on the question still needs to be the supplier | SE admin, Supplier Mgt |
+| Display Response | Not defined anywhere; possibly marks a comment as OK to share | SE team, Supplier Mgt |
+| Fewer questions | SE has one rating question per supplier section, where Back Office has several plus "would recommend" | Supplier Mgt |
+| Supplier types with no SE question | Mortgage, HFP Agent, Home Sale Agent, Rental Assistance and Property Management have no SE supplier question, so their scores would stop | Supplier Mgt |
+| Back Office damage question | "Did you have damage..." counts No under Disagree, which lowers scores for a good outcome. Allow for this when comparing | Supplier Mgt |
+| Back Office totals | Summary by Section totals restart when a heading repeats, and By section vs By supplier totals differ (283 vs 279). Don't reconcile to them | Report owner |
 
 ### Both survey reports
 

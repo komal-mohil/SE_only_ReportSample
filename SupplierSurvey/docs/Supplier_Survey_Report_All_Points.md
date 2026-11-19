@@ -2,6 +2,8 @@
 
 Compiled 2026-11-05 from the files in the `dwh` folder. No database was connected to or queried. The dbt run results in section 11 come from reading the existing log file only.
 
+> **Status update, 2026-11-19.** The report has been built since this file was compiled, and the approach changed. The page `dbt/Only SE Reports/Supplier_Survey_Report_SE.html` reads `FactTransfereeSurvey`, the same table as the Transferee Survey report, and names the supplier from **Question Contact Company**, a column SE added to `udv_transferee_survey_view_34` under ticket 40217. `FactSupplierSurvey` and its inferred-supplier logic (section 11) are **no longer used**, but the models are still in dbt. The only supplier answers are 5 test rows loaded by `dbt/sql/supplier_survey_load_2026-11-18.sql`. Sections 1 to 10 are unchanged source text. Section 11 has an update at the end, and section 13 starts with a table showing where each observation stands now. `SE_Reports_Summary.md` has the current rules and open points.
+
 **How to read this file**
 
 - Text in quote blocks and code blocks is copied **exactly as written in the source**, including its spelling mistakes (for example "Suvey", "Authoorized", "fo example", "Feed Bak").
@@ -739,6 +741,16 @@ The log gives no row count for the table.
 - No sample report page: `dbt/Only SE Reports/` has HTML pages for Workload and Transferee Survey only.
 - `SE_Reports_Summary.md` does not mention this report.
 
+### Update, 2026-11-19
+
+The list above is out of date:
+
+- **Page built:** `dbt/Only SE Reports/Supplier_Survey_Report_SE.html`, with all three Back Office formats (Summary by Supplier with Detail is the default). `refresh_transferee_report.py` refreshes it from `FactTransfereeSurvey` together with the Transferee Survey page. The data was last built on 2026-11-18 at 16:12.
+- **Source changed:** the page uses `FactTransfereeSurvey`, not `FactSupplierSurvey`. A supplier question is any question outside the NuCompass sections. Supplier = `Question Contact Company`, and Supplier Type = the survey section.
+- **New columns:** ticket 40217 added Survey Last Sent Date, Number of Surveys Sent and Question Contact Company to `int_se_fact_TransfereeSurvey.sql` and `FactTransfereeSurvey.sql` (both changed 2026-11-18 14:26). SE's new view text is in `dbt/sql/udv_transferee_survey_view_34_new_40217.sql`, and the old view is backed up in `udv_transferee_survey_view_34_backup_2026-11-16.sql`.
+- **Still in dbt but unused:** `FactSupplierSurvey.sql` (last changed 2026-11-05) and `int_se_fact_SupplierSurvey.sql` (last changed 2026-11-12), with their `_gold.yml` and `_sources.yml` entries. Retire them once the business accepts the page.
+- **Summary:** `SE_Reports_Summary.md` now covers this report.
+
 ---
 
 ## 12. Searched but not quoted
@@ -762,6 +774,32 @@ The log gives no row count for the table.
 ## 13. Observations (mine, not from the source files)
 
 These are my own notes on where the sources disagree or leave gaps. Nothing here was checked against a database. Items are ordered with the ones most likely to affect the report first.
+
+**Where they stand on 2026-11-19.** The numbered list below is kept as written on 2026-11-05.
+
+| # | Status | Now |
+|---|---|---|
+| 1 | Superseded | `FactSupplierSurvey` is no longer used. Supplier answers come from `FactTransfereeSurvey`, which has 5 test supplier answers |
+| 2 | Partly settled | The comment on a supplier question shows under the answer when Show comments is on. Comments in "Other Comments or Feed Bak" still have no supplier |
+| 3 | Open | In the summary's open points |
+| 4 | Open | In the summary's open points |
+| 5 | Settled in the page, to confirm | 5-point Very Dissatisfied to Very Satisfied scale. Boxes count the `Rating` label. Yes counts under Satisfied and No under Dissatisfied |
+| 6 | Superseded | Supplier = `Question Contact Company`, as recorded by SE. Nothing is inferred. The Temporary Living question still has the role File Manager (open) |
+| 7 | Gone | One row per answer, so nothing is double-counted |
+| 8 | Gone | Answers with no company show under "(No supplier on question)" |
+| 9 | Settled in the page | (VIP) comes from Client VIP / NCM VIP. Remove From Report hides an answer, and Remove From Calc shows it but leaves it out of the counts. There is still no response date |
+| 10 | Open | The page filters on Survey Sent Date |
+| 11 | Settled | Supplier Type = the survey section |
+| 12 | Settled | Service provider = the consultant on the file |
+| 13 | Open | Allow for it when comparing with Back Office |
+| 14 | Settled in the page | Rows with no rating or yes/no answer aren't counted. Comment-only rows show as "(comment only)" |
+| 15, 16 | Unchanged | Don't reconcile to Back Office section totals |
+| 17 | Settled in the page | All three formats are offered. Summary by Supplier with Detail is the default |
+| 18 | No longer matters | Applies only to the unused `int_se_fact_SupplierSurvey` |
+| 19 | Open | SE admin to fix |
+| 20 | Open | Still no approved spec |
+| 21, 22, 23 | Not re-checked | |
+| 24 | Still applies | |
 
 1. **`FactSupplierSurvey` is probably empty today.** It keeps only six supplier sections, and neither data extract has a survey with any of them (section 9). `SE_Reports_Summary.md` says the live survey table has 1 survey with 8 rows, which matches the NewTables extract of 5 non-supplier sections. The two passing `not_null` tests would also pass on an empty table. A row count would settle this, and the supplier logic has not been tested on real data until supplier sections exist.
 2. **Comments can't come from this table as built.** The business says Show Comments is always checked. In SE the free-text questions are in "Other Comments or Feed Bak", which the fact leaves out, and no supplier question has a verbatim in the template. `Text Response` will therefore usually be blank. Those comments are also not tied to a supplier, so the business needs to say how they should appear.

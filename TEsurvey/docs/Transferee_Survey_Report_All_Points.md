@@ -2,6 +2,8 @@
 
 Compiled 2026-11-04 from the files in the `dwh` folder. No database was connected to or queried. The dbt run results in section 11 come from reading the existing log file only.
 
+> **Status update, 2026-11-19.** The report page has been built since this file was compiled: `dbt/Only SE Reports/Transferee_Survey_Report_SE.html`, from `FactTransfereeSurvey` (data built 2026-11-18 16:12). It has the four Back Office formats, a Consultant Scorecard (WOW / ACE) built from Bert's Survey Metrics, and a Survey Status list. SE added three columns to the view under ticket 40217, and dbt carries them. The data is 3 test surveys loaded by scripts in `dbt/sql`. Sections 1 to 10 are unchanged source text. Section 11 has an update at the end, and section 13 starts with a table showing where each observation stands now. `SE_Reports_Summary.md` has the current rules and open points.
+
 **How to read this file**
 
 - Text in quote blocks and code blocks is copied **exactly as written in the source**, including its spelling mistakes (for example "requireing", "requeest", "Feed Bak", "Transfee").
@@ -826,6 +828,16 @@ Adds `action_form` and the six `form_0164` tables.
 
 The log does not give a row count.
 
+### Update, 2026-11-19
+
+- **Ticket 40217:** SE added Survey Last Sent Date, Number of Surveys Sent and Question Contact Company to `udv_transferee_survey_view_34`. `int_se_fact_TransfereeSurvey.sql` and `FactTransfereeSurvey.sql` carry them (both changed 2026-11-18 14:26).
+  - The last-sent date and the count use resends but leave out reminders (`act_subtype <> 'TICKLE'`).
+  - They join `action_form` on `act_dup_uid = act_dup_uid`, as the view does. The first-send lookup above joins on `act_uid`.
+- **View text:** SE's new view text is in `dbt/sql/udv_transferee_survey_view_34_new_40217.sql`, with its deploy script `deploy_udv_transferee_survey_view_34_40217.sql`. The old view is backed up in `udv_transferee_survey_view_34_backup_2026-11-16.sql`.
+- **Check against the live view, 2026-11-18:** the fact and the live view have the same 57 columns in the same order and the same 32 rows. Auth Date / Benefit Expires (typed as dates) and the order of the Service list differ by design.
+- **Test data:** `te_survey_load_2026-11-06.sql`, `te_survey_answers_278-0031_2026-11-06.sql`, `te_survey_yesno_sample_2026-11-06.sql` and `supplier_survey_load_2026-11-18.sql` in `dbt/sql`, run in that order. Each has undo statements.
+- **Report page:** `dbt/Only SE Reports/Transferee_Survey_Report_SE.html`. `refresh_transferee_report.py` refreshes it from the fact, together with the Survey by Supplier page.
+
 ---
 
 ## 12. Related reports and items searched but not quoted
@@ -884,6 +896,27 @@ This is the report that Transferee Survey data "pulls to" (section 2). A2 says "
 ## 13. Observations (mine, not from the source files)
 
 These are my own notes on where the sources disagree or leave gaps. Nothing here was checked against a database. Items are ordered with the ones most likely to affect report numbers first.
+
+**Where they stand on 2026-11-19.** The numbered list below is kept as written on 2026-11-04.
+
+| # | Status | Now |
+|---|---|---|
+| 1 | Settled in the page, to confirm | Boxes count the `Rating` label, so the reversed points don't matter. The page doesn't use points |
+| 2 | Open | SE admin to fix |
+| 3 | Built | The page has Overall Rollup (Top / Top 2 / Top 3 Box, Number of Surveys Returned, Return Rate), Detailed, Surveys Requiring Action, TE Detail Comments, Consultant Scorecard and Survey Status. Remove From Report / Calc aren't applied in this report by decision; they apply only to Survey by Supplier |
+| 4 | Settled in the page | Return rate = distinct TEs who answered ÷ distinct TEs sent a survey, as Back Office defines it. Number of Surveys Sent now exists, but the resend rules are undefined. All 3 test surveys are returned, so outstanding surveys aren't exercised |
+| 5 | Open | Still no SE source for Transferee Permission or Contact Preference |
+| 6 | Open | Scores can't be compared question for question |
+| 7 | Defined, to confirm | Bert's Survey Metrics (Nov 18) set the WOW and ACE targets, and the page applies them. The question-to-category mapping and the reading of WOW Tier 1 need Bert's confirmation |
+| 8, 9 | Settled | SE's current view text is in `dbt/sql`, and the fact matched the live view on 2026-11-18 |
+| 10, 11 | Not re-checked | |
+| 12 | Open | Blank on all 3 test surveys |
+| 13 | Changed | Ticket 40217 brought the view to 57 columns |
+| 14 | Settled | The TE Detail Comments Report shows `Text Response`, and the Counselor Response when there is one |
+| 15 | Built, to confirm | Negative = Dissatisfied, Very Dissatisfied or No. To confirm with Bert and Karen |
+| 16, 17, 18, 19, 20, 21 | Not re-checked | |
+| 22 | Still applies | 3 test surveys in the warehouse, all returned: still too few to test the rollup figures |
+| 23 | Still applies | |
 
 1. **The points scale runs in opposite directions.** The spec example gives Very Satisfied 5 points, but the test surveys and the current template give it 1. A lower total is better under the current template, so any calculation built on Rating Points or Total Points could read backwards. Top Box should count the `Rating` label, not the points. The business should confirm which scale is intended.
 2. **Two current questions have odd weights.** "Consultant's responsiveness" is 1 2 2 4 5 and "local service provider" is 1 3 3 4 5. Each looks like a typing error for 1 2 3 4 5. They would change Total Points on new surveys.
